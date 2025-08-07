@@ -1,0 +1,446 @@
+<div class="min-h-screen bg-gray-50 p-4 lg:p-8">
+    <!-- En-tête Ultra Moderne -->
+    <div class="mb-8">
+        <div class="relative bg-gradient-to-br from-white via-gray-50 to-white rounded-3xl shadow-2xl p-8 border border-gray-100 overflow-hidden group hover:shadow-3xl transition-all duration-500">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+            <!-- Decorative Elements -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-5 -left-5 w-24 h-24 bg-gradient-to-tr from-black/10 to-transparent rounded-full blur-xl"></div>
+
+            <!-- Main Content -->
+            <div class="relative flex items-center justify-between">
+                <div class="flex-1">
+                    <!-- Badge -->
+                    <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-bold tracking-wide mb-4 shadow-lg">
+                        <span class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+                        TEMPS RÉEL
+                    </div>
+
+                    <!-- Title -->
+                    <h2 class="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-black via-gray-800 to-red-600 mb-3 leading-tight">
+                        Tableau de bord
+                        <span class="block text-red-600">de supervision</span>
+                    </h2>
+
+                    <!-- Subtitle -->
+                    <p class="text-gray-600 text-lg leading-relaxed max-w-2xl">
+                        Surveillance intelligente et analyse en temps réel des processus métier critiques
+                    </p>
+
+                    <!-- Stats Row -->
+                    <div class="flex items-center mt-6 space-x-6">
+                        <div class="flex items-center text-green-600">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                            <span class="text-sm font-semibold">Système opérationnel</span>
+                        </div>
+                        <div class="flex items-center text-gray-500">
+                            <span class="material-icons text-lg mr-1">update</span>
+                            <span class="text-sm">Mise à jour continue</span>
+                        </div>
+                        <div class="flex items-center text-gray-500">
+                            <span class="material-icons text-lg mr-1">speed</span>
+                            <span class="text-sm">Performance optimale</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side Icon/Visual -->
+                <div class="hidden lg:block ml-8">
+                    <div class="relative">
+                        <!-- Main Circle -->
+                        <div class="w-32 h-32 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                            <span class="material-icons text-white text-4xl">dashboard</span>
+                        </div>
+
+                        <!-- Floating Elements -->
+                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                            <span class="material-icons text-white text-sm">notifications</span>
+                        </div>
+
+                        <div class="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                            <span class="material-icons text-white text-xs">check</span>
+                        </div>
+
+                        <!-- Orbit Ring -->
+                        <div class="absolute inset-0 border-2 border-gray-200 rounded-full animate-spin-slow opacity-30"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Progress Line -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-red-600 to-black"></div>
+        </div>
+    </div>
+
+    <!-- Cartes de Statut - Design Ultra Moderne -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Carte Processus Actifs -->
+        <div class="group relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-green-200 overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <!-- Icon Container -->
+            <div class="relative mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <span class="material-icons text-white text-2xl">play_circle</span>
+                </div>
+                <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-400 rounded-full animate-pulse opacity-75"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="relative">
+                <h6 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 group-hover:text-green-600 transition-colors">
+                    Processus Actifs
+                </h6>
+
+                <div class="mb-4">
+                    <div class="text-4xl font-black text-black mb-3 group-hover:text-green-700 transition-colors">
+                        {{ getStatusCount("actif") }}
+                        <span class="text-xl text-gray-400 font-normal">/ {{ processData?.totalProcesses || 0 }}</span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                             [style.width]="getStatusPercentage('actif') + '%'"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-green-600">{{ getStatusPercentage("actif") }}%</span>
+                        <div class="flex items-center text-green-600">
+                            <span class="material-icons text-lg mr-1">{{ getTrendIcon("actif") }}</span>
+                            <span class="text-xs font-semibold">ACTIF</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    <span class="font-bold text-green-600">{{ getStatusCount("actif") }}</span> processus en cours d'exécution
+                </p>
+            </div>
+        </div>
+
+        <!-- Carte Processus Suspendus -->
+        <div class="group relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-yellow-200 overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <!-- Icon Container -->
+            <div class="relative mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <span class="material-icons text-white text-2xl">pause_circle</span>
+                </div>
+                <div class="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full animate-pulse opacity-75"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="relative">
+                <h6 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 group-hover:text-yellow-600 transition-colors">
+                    Processus Suspendus
+                </h6>
+
+                <div class="mb-4">
+                    <div class="text-4xl font-black text-black mb-3 group-hover:text-yellow-700 transition-colors">
+                        {{ getStatusCount("suspendu") }}
+                        <span class="text-xl text-gray-400 font-normal">/ {{ processData?.totalProcesses || 0 }}</span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                             [style.width]="getStatusPercentage('suspendu') + '%'"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-yellow-600">{{ getStatusPercentage("suspendu") }}%</span>
+                        <div class="flex items-center text-yellow-600">
+                            <span class="material-icons text-lg mr-1">{{ getTrendIcon("suspendu") }}</span>
+                            <span class="text-xs font-semibold">PAUSE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    <span class="font-bold text-yellow-600">{{ getStatusCount("suspendu") }}</span> processus temporairement arrêtés
+                </p>
+            </div>
+        </div>
+
+        <!-- Carte Processus Terminés -->
+        <div class="group relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-red-200 overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <!-- Icon Container -->
+            <div class="relative mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <span class="material-icons text-white text-2xl">check_circle</span>
+                </div>
+                <div class="absolute -top-1 -right-1 w-6 h-6 bg-red-400 rounded-full animate-pulse opacity-75"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="relative">
+                <h6 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 group-hover:text-red-600 transition-colors">
+                    Processus Terminés
+                </h6>
+
+                <div class="mb-4">
+                    <div class="text-4xl font-black text-black mb-3 group-hover:text-red-700 transition-colors">
+                        {{ getStatusCount("terminé") }}
+                        <span class="text-xl text-gray-400 font-normal">/ {{ processData?.totalProcesses || 0 }}</span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div class="bg-gradient-to-r from-red-500 to-red-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                             [style.width]="getStatusPercentage('terminé') + '%'"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-red-600">{{ getStatusPercentage("terminé") }}%</span>
+                        <div class="flex items-center text-red-600">
+                            <span class="material-icons text-lg mr-1">{{ getTrendIcon("terminé") }}</span>
+                            <span class="text-xs font-semibold">FINI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    <span class="font-bold text-red-600">{{ getStatusCount("terminé") }}</span> processus complétés avec succès
+                </p>
+            </div>
+        </div>
+
+        <!-- Carte Autres Processus -->
+        <div class="group relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 border border-gray-100 hover:border-gray-300 overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-gradient-to-br from-gray-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <!-- Icon Container -->
+            <div class="relative mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <span class="material-icons text-white text-2xl">category</span>
+                </div>
+                <div class="absolute -top-1 -right-1 w-6 h-6 bg-gray-400 rounded-full animate-pulse opacity-75"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="relative">
+                <h6 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 group-hover:text-gray-700 transition-colors">
+                    Processes avec job exceptions
+                </h6>
+
+                <div class="mb-4">
+                    <div class="text-4xl font-black text-black mb-3 group-hover:text-gray-700 transition-colors">
+                        {{ getStatusCount("job_exceptions") }}
+                        <span class="text-xl text-gray-400 font-normal"></span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div class="bg-gradient-to-r from-gray-500 to-gray-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                             [style.width]="getStatusPercentage('job_exceptions') + '%'"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl font-bold text-gray-600">{{ getStatusPercentage("job_exceptions") }}%</span>
+                        <div class="flex items-center text-gray-600">
+                            <span class="material-icons text-lg mr-1">{{ getTrendIcon("job_exceptions") }}</span>
+                            <span class="text-xs font-semibold">job_exceptions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    <span class="font-bold text-gray-700">{{ getStatusCount("job_exceptions") }}</span> Processes avec job exceptions
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dernière mise à jour -->
+    <div class="mb-8" *ngIf="lastUpdated">
+        <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-red-600">
+            <div class="flex items-center">
+                <span class="material-icons text-red-600 mr-2">update</span>
+                <span class="text-gray-700 font-medium">Dernière mise à jour : {{ lastUpdated | date : "mediumTime" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicateur de chargement -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" *ngIf="loading">
+        <div class="bg-white rounded-2xl p-8 flex flex-col items-center">
+            <mat-spinner diameter="50" class="mb-4"></mat-spinner>
+            <p class="text-gray-700 font-medium">Chargement des données en temps réel...</p>
+        </div>
+    </div>
+
+    <!-- Section Graphiques -->
+    <div class="grid lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-black mb-4 flex items-center">
+                <span class="material-icons text-red-600 mr-2">trending_down</span>
+                Tendance des processus abandonnés
+            </h3>
+            <div class="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
+                <div class="mb-4">
+                    <span class="material-icons text-gray-400 text-6xl">bar_chart</span>
+                </div>
+                <p class="text-gray-600 font-medium mb-2">Graphique Grafana - Tendance temporelle</p>
+                <p class="text-gray-500 text-sm">Visualisation de l'évolution quotidienne des processus abandonnés</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-black mb-4 flex items-center">
+                <span class="material-icons text-red-600 mr-2">storage</span>
+                Impact sur la base de données
+            </h3>
+            <div class="bg-gray-50 rounded-lg p-8 text-center border-2 border-dashed border-gray-300">
+                <div class="mb-4">
+                    <span class="material-icons text-gray-400 text-6xl">show_chart</span>
+                </div>
+                <p class="text-gray-600 font-medium mb-2">Graphique Grafana - Croissance BDD</p>
+                <p class="text-gray-500 text-sm">Impact des processus abandonnés sur la taille de la base de données</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section du bas -->
+    <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Tableau activité récente -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
+            <h5 class="text-xl font-bold text-black mb-6 flex items-center">
+                <span class="material-icons text-red-600 mr-2">history</span>
+                Activité récente des processus
+            </h5>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">ID Processus</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Nom du processus</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Statut</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Durée</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Impact BDD</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4">
+                            <a href="#" class="text-red-600 hover:text-red-800 font-medium transition-colors">#APS-2024-004</a>
+                        </td>
+                        <td class="py-4 px-4 text-gray-900">Demande de prêt personnel</td>
+                        <td class="py-4 px-4">
+                <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  <span class="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                  Actif
+                </span>
+                        </td>
+                        <td class="py-4 px-4 text-gray-700">0h 45min</td>
+                        <td class="py-4 px-4 text-gray-700">+34 Mo</td>
+                    </tr>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4">
+                            <a href="#" class="text-red-600 hover:text-red-800 font-medium transition-colors">#APS-2024-005</a>
+                        </td>
+                        <td class="py-4 px-4 text-gray-900">Validation KYC client</td>
+                        <td class="py-4 px-4">
+                <span class="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+                  <span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
+                  Abandonné
+                </span>
+                        </td>
+                        <td class="py-4 px-4 text-gray-700">8h 17min</td>
+                        <td class="py-4 px-4 text-gray-700">+156 Mo</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Colonne de droite -->
+        <div class="space-y-6">
+            <!-- Section alertes -->
+            <div class="space-y-4">
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                    <div class="flex items-start">
+                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <span class="material-icons text-red-600">warning</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-red-900 mb-2">Alerte critique</h4>
+                            <p class="text-red-800 text-sm mb-3">
+                                12 processus abandonnés dans les dernières 24h, causant une croissance significative de la base de données.
+                            </p>
+                            <button class="inline-flex items-center text-red-700 hover:text-red-900 font-medium text-sm transition-colors">
+                                Voir détails
+                                <span class="material-icons ml-1">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+                    <div class="flex items-start">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <span class="material-icons text-yellow-600">info</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-yellow-900 mb-2">Avertissement performance</h4>
+                            <p class="text-yellow-800 text-sm mb-3">
+                                La table 'ACT_HI_VARINST' montre un taux de croissance anormal (8,2% sur 7 jours).
+                            </p>
+                            <button class="inline-flex items-center text-yellow-700 hover:text-yellow-900 font-medium text-sm transition-colors">
+                                Analyser
+                                <span class="material-icons ml-1">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                    <div class="flex items-start">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <span class="material-icons text-blue-600">storage</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-blue-900 mb-2">Optimisation requise</h4>
+                            <p class="text-blue-800 text-sm mb-3">
+                                3 tables nécessitent une optimisation pour améliorer les performances du système.
+                            </p>
+                            <button class="inline-flex items-center text-blue-700 hover:text-blue-900 font-medium text-sm transition-colors">
+                                Optimiser
+                                <span class="material-icons ml-1">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte support -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-red-600">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h5 class="font-bold text-black mb-1">Support technique APS</h5>
+                        <p class="text-gray-600 text-sm">Réponse typique sous 5 minutes</p>
+                    </div>
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold">AT</div>
+                        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-xs font-bold">BS</div>
+                        <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white text-xs font-bold">CM</div>
+                    </div>
+                </div>
+                <button
+                        class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                        onclick="openSupport()">
+                    Besoin d'aide ?
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,98 @@
+<div class="modal-backdrop">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Filtre Avancé</h2>
+        </div>
+        <form>
+            <div class="modal-body">
+                <!-- HIDDEN: Process Case -->
+                <div class="form-group mb-3" *ngIf="false">
+                    <label for="processCase">Process Case</label>
+                    <select class="form-select" id="processCase" [(ngModel)]="filters.processCase" name="processCase">
+                        <option value="longRunning">Long Running</option>
+                        <option value="failed">Failed</option>
+                        <option value="noTask">No Task</option>
+                        <option value="initiatorOnly">Initiator Only</option>
+                    </select>
+                </div>
+
+                <!-- VISIBLE: Definition ID -->
+                <div class="form-group mb-3">
+                    <label for="processDefinition">Definition</label>
+                    <div class="dropdown-container">
+                        <input type="text"
+                               class="form-control"
+                               id="processDefinition"
+                               [formControl]="processDefinitionControl"
+                               (focus)="showDefinitionDropdown = true"
+                               (input)="filterDefinitions()">
+
+                        <div class="dropdown-list" *ngIf="showDefinitionDropdown && (filteredDefs.length > 0)">
+                            <div class="dropdown-item"
+                                 *ngFor="let def of filteredDefs"
+                                 (click)="selectDefinition(def)">
+                                {{ def.name_ }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISIBLE: Instance ID -->
+                <div class="form-group mb-3">
+                    <label for="processInstance">Instance ID</label>
+                    <div class="dropdown-container">
+                        <input type="text"
+                               class="form-control"
+                               id="processInstance"
+                               [formControl]="processInstanceControl"
+                               (focus)="showInstanceDropdown = true"
+                               (input)="filterInstances()">
+
+                        <div class="dropdown-list" *ngIf="showInstanceDropdown && (filteredInsts.length > 0)">
+                            <div class="dropdown-item"
+                                 *ngFor="let inst of filteredInsts"
+                                 (click)="selectInstance(inst)">
+                                {{ inst.name_ || 'No Name' }} ({{ inst.id_ }})
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISIBLE: Period -->
+                <div class="form-group mb-3">
+                    <label for="periodInDays">Période (en jours)</label>
+                    <input type="number"
+                           class="form-control"
+                           id="periodInDays"
+                           [(ngModel)]="filters.periodInDays"
+                           name="periodInDays">
+                </div>
+
+                <!-- HIDDEN: Assignee ID -->
+                <div class="form-group mb-3" *ngIf="false">
+                    <label for="assigneeId">Assignee ID</label>
+                    <input type="text"
+                           class="form-control"
+                           id="assigneeId"
+                           [(ngModel)]="filters.assigneeId"
+                           name="assigneeId">
+                </div>
+
+                <!-- VISIBLE: Sort Order -->
+                <div class="form-group mb-3">
+                    <label for="sortOrder">Ordre</label>
+                    <select class="form-select" id="sortOrder" [(ngModel)]="filters.sortOrder" name="sortOrder">
+                        <option value="ASC">Ascendant</option>
+                        <option value="DESC">Descendant</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="modal-footer">
+                <button class="btn btn-outline-danger" type="button" (click)="closeModal()">Annuler</button>
+                <button class="btn btn-danger" type="submit" (click)="apply()">Appliquer</button>
+            </div>
+        </form>
+    </div>
+</div>

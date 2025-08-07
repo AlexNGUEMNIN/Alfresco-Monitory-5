@@ -1,0 +1,41 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onClose()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Notifications</h2>
+            <button class="close-btn" (click)="onClose()">×</button>
+        </div>
+
+        <div class="notifications-container">
+            <div *ngIf="loading" class="loading-indicator">
+                Loading notifications...
+            </div>
+
+            <div *ngIf="!loading && notifications.length === 0" class="empty-state">
+                No notifications available
+            </div>
+
+            <div class="notifications-list">
+                <div *ngFor="let notification of notifications"
+                     class="notification-item"
+                     [class.unread]="!notification.read"
+                     (click)="markAsRead(notification)">
+
+                    <div class="notification-icon" [class]="'priority-' + notification.priority">
+            <span class="material-icons">
+              {{ notification.type === 'task' ? 'assignment' : 'notifications' }}
+            </span>
+                    </div>
+
+                    <div class="notification-content">
+                        <div class="notification-title">{{ notification.title }}</div>
+                        <div class="notification-description">{{ notification.description }}</div>
+                        <div class="notification-time">
+                            {{ notification.timestamp | date:'medium' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<app-toast-notification #toast></app-toast-notification>

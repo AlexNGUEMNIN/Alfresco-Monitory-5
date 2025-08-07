@@ -1,0 +1,46 @@
+<div class="login-container">
+
+    <div class="form-div">
+        <div class="welcome-section">
+            <h1>Réinitialiser le Mot de Passe</h1>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #resetPasswordForm="ngForm">
+            <div class="form-group">
+                <label for="number">Code de vérification:</label>
+                <input type="number" id="number" name="number" [(ngModel)]="number"  class="form-input"   required />
+            </div>
+
+            <div class="form-group">
+                <label for="newPassword">Nouveau Mot de Passe :</label>
+                <input type="password" id="newPassword" name="newPassword" [(ngModel)]="newPassword"  class="form-input"   required />
+                <div *ngIf="passwordInvalid" class="error-message">Le mot de passe doit contenir au moins 6 caractères.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmer le Mot de Passe :</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" [(ngModel)]="confirmPassword"  class="form-input" 
+                    required />
+                <div *ngIf="passwordsMismatch" class="error-message">Les mots de passe ne correspondent pas.</div>
+            </div>
+
+            <button type="submit" class="login-button">Réinitialiser le Mot de Passe</button>
+        </form>
+
+        <div *ngIf="message" class="message" [ngClass]="{'success': isSuccess, 'error': !isSuccess}">
+            {{ message }}
+        </div>
+
+        <div class="signup-link">
+            <a [routerLink]="['/login']">Retour à la connexion</a>
+        </div>
+
+        <footer class="footer">
+            &copy; 2024 MBOA. Tous droits réservés.
+        </footer>
+    </div>
+    <div class="image-div">
+        <img src="assets/imgAuth.jpg" alt="Image d'inscription" class="image"> 
+    </div>
+</div>

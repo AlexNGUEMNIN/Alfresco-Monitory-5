@@ -1,0 +1,24 @@
+input[type="email"]:focus,
+input[type="password"]:focus,
+input:focus {
+  outline: none !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Remove any blue focus rings from browser defaults */
+*:focus {
+  outline: none !important;
+}
+
+/* Ensure checkbox has red focus */
+input[type="checkbox"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Button focus state */
+button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3) !important;
+}

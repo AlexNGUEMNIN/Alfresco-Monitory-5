@@ -1,0 +1,401 @@
+<div class="enhanced-bulk-modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="enhanced-bulk-modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <span class="material-icons">playlist_add_check</span>
+        </div>
+        <div class="header-text">
+          <h2 class="modal-title">Actions Groupées</h2>
+          <p class="modal-subtitle">
+            {{ selectedItems.length }} {{ getItemTypeLabel() }} sélectionné{{ selectedItems.length > 1 ? 's' : '' }}
+          </p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="onClose()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Selected Items Preview -->
+    <div class="selected-items-preview" *ngIf="selectedItems.length > 0">
+      <div class="preview-header">
+        <h4>Éléments sélectionnés</h4>
+        <button class="toggle-preview-btn" (click)="togglePreview()">
+          <span class="material-icons">{{ showPreview ? 'expand_less' : 'expand_more' }}</span>
+        </button>
+      </div>
+      
+      <div class="preview-content" *ngIf="showPreview">
+        <div class="preview-grid">
+          <div 
+            class="preview-item"
+            *ngFor="let item of selectedItems.slice(0, maxPreviewItems); trackBy: trackByItemId"
+          >
+            <div class="item-icon">
+              <span class="material-icons">{{ getItemIcon(item) }}</span>
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ getItemName(item) }}</div>
+              <div class="item-meta">{{ getItemMeta(item) }}</div>
+            </div>
+            <div class="item-status">
+              <span class="status-badge" [class]="'status-' + getItemStatus(item)">
+                {{ getStatusLabel(getItemStatus(item)) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="more-items" *ngIf="selectedItems.length > maxPreviewItems">
+            <span class="material-icons">more_horiz</span>
+            <span>+{{ selectedItems.length - maxPreviewItems }}job_exceptions</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Selection -->
+    <div class="action-selection">
+      <h4 class="section-title">Choisissez une action</h4>
+      
+      <div class="actions-grid">
+        <!-- Resume Action -->
+        <div 
+          class="action-card"
+          [class.selected]="selectedAction === 'resume'"
+          [class.disabled]="!isActionAvailable('resume')"
+          (click)="selectAction('resume')"
+        >
+          <div class="action-icon resume">
+            <span class="material-icons">play_arrow</span>
+          </div>
+          <div class="action-content">
+            <h5>Reprendre</h5>
+            <p>Reprendre les éléments suspendus</p>
+            <div class="action-count">
+              {{ getActionCount('resume') }} éligibles
+            </div>
+          </div>
+          <div class="action-check" *ngIf="selectedAction === 'resume'">
+            <span class="material-icons">check_circle</span>
+          </div>
+        </div>
+
+        <!-- Suspend Action -->
+        <div 
+          class="action-card"
+          [class.selected]="selectedAction === 'suspend'"
+          [class.disabled]="!isActionAvailable('suspend')"
+          (click)="selectAction('suspend')"
+        >
+          <div class="action-icon suspend">
+            <span class="material-icons">pause</span>
+          </div>
+          <div class="action-content">
+            <h5>Suspendre</h5>
+            <p>Suspendre les éléments en cours</p>
+            <div class="action-count">
+              {{ getActionCount('suspend') }} éligibles
+            </div>
+          </div>
+          <div class="action-check" *ngIf="selectedAction === 'suspend'">
+            <span class="material-icons">check_circle</span>
+          </div>
+        </div>
+
+        <!-- Stop Action -->
+        <div 
+          class="action-card"
+          [class.selected]="selectedAction === 'stop'"
+          [class.disabled]="!isActionAvailable('stop')"
+          (click)="selectAction('stop')"
+        >
+          <div class="action-icon stop">
+            <span class="material-icons">stop</span>
+          </div>
+          <div class="action-content">
+            <h5>Arrêter</h5>
+            <p>Arrêter définitivement</p>
+            <div class="action-count">
+              {{ getActionCount('stop') }} éligibles
+            </div>
+          </div>
+          <div class="action-check" *ngIf="selectedAction === 'stop'">
+            <span class="material-icons">check_circle</span>
+          </div>
+        </div>
+
+        <!-- Transfer Action -->
+        <div 
+          class="action-card"
+          [class.selected]="selectedAction === 'transfer'"
+          [class.disabled]="!isActionAvailable('transfer')"
+          (click)="selectAction('transfer')"
+        >
+          <div class="action-icon transfer">
+            <span class="material-icons">swap_horiz</span>
+          </div>
+          <div class="action-content">
+            <h5>Transférer</h5>
+            <p>Transférer vers un autre utilisateur</p>
+            <div class="action-count">
+              {{ getActionCount('transfer') }} éligibles
+            </div>
+          </div>
+          <div class="action-check" *ngIf="selectedAction === 'transfer'">
+            <span class="material-icons">check_circle</span>
+          </div>
+        </div>     
+
+        <!-- Set Due Date Action -->
+        <!-- <div 
+          class="action-card"
+          [class.selected]="selectedAction === 'set-due-date'"
+          [class.disabled]="!isActionAvailable('set-due-date')"
+          (click)="selectAction('set-due-date')"
+        >
+          <div class="action-icon due-date">
+            <span class="material-icons">schedule</span>
+          </div>
+          <div class="action-content">
+            <h5>Définir Échéance</h5>
+            <p>Assigner une date limite</p>
+            <div class="action-count">
+              {{ getActionCount('set-due-date') }} éligibles
+            </div>
+          </div>
+          <div class="action-check" *ngIf="selectedAction === 'set-due-date'">
+            <span class="material-icons">check_circle</span>
+          </div>
+        </div> -->
+      </div>
+    </div>
+
+    <!-- Action Configuration -->
+    <div class="action-configuration" *ngIf="selectedAction">
+      <!-- Transfer Configuration -->
+      <div *ngIf="selectedAction === 'transfer'" class="config-section">
+        <h5>Configuration du transfert</h5>
+        <div class="transfer-options">
+          <div class="option-tabs">
+            <button 
+              class="tab-btn"
+              [class.active]="transferType === 'user'"
+              (click)="setTransferType('user')"
+            >
+              <span class="material-icons">person</span>
+              Utilisateur
+            </button>
+            <button 
+              class="tab-btn"
+              [class.active]="transferType === 'group'"
+              (click)="setTransferType('group')"
+            >
+              <span class="material-icons">groups</span>
+              Groupe
+            </button>
+            <button 
+              class="tab-btn"
+              [class.active]="transferType === 'manager'"
+              (click)="setTransferType('manager')"
+            >
+              <span class="material-icons">supervisor_account</span>
+              Manager
+            </button>
+          </div>
+
+          <div class="transfer-content">
+            <!-- User Selection -->
+            <div *ngIf="transferType === 'user'" class="user-selection">
+              <div class="search-box">
+                <span class="material-icons">search</span>
+                <input 
+                  type="text" 
+                  placeholder="Rechercher un utilisateur..."
+                  [(ngModel)]="userSearchTerm"
+                  (input)="searchUsers()"
+                />
+              </div>
+              
+              <div class="users-list" *ngIf="filteredUsers.length > 0">
+                <div 
+                  class="user-option"
+                  *ngFor="let user of filteredUsers"
+                  [class.selected]="selectedUserId === user.id"
+                  (click)="selectUser(user.id)"
+                >
+                  <div class="user-avatar">
+                    {{ getUserInitials(user.name) }}
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ user.name }}</div>
+                    <div class="user-role">{{ user.role }}</div>
+                  </div>
+                  <div class="user-check" *ngIf="selectedUserId === user.id">
+                    <span class="material-icons">check_circle</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group Selection -->
+            <div *ngIf="transferType === 'group'" class="group-selection">
+              <div class="groups-list">
+                <div 
+                  class="group-option"
+                  *ngFor="let group of availableGroups"
+                  [class.selected]="selectedGroupId === group.id"
+                  (click)="selectGroup(group.id)"
+                >
+                  <div class="group-icon">
+                    <span class="material-icons">groups</span>
+                  </div>
+                  <div class="group-info">
+                    <div class="group-name">{{ group.name }}</div>
+                    <div class="group-description">{{ group.description }}</div>
+                    <div class="group-members">{{ group.memberCount }} membres</div>
+                  </div>
+                  <div class="group-check" *ngIf="selectedGroupId === group.id">
+                    <span class="material-icons">check_circle</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Manager Selection -->
+            <div *ngIf="transferType === 'manager'" class="manager-selection">
+              <div class="manager-info">
+                <div class="info-card">
+                  <span class="material-icons">info</span>
+                  <p>Les éléments seront transférés automatiquement au manager responsable de chaque processus.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Priority Configuration -->
+      <div *ngIf="selectedAction === 'change-priority'" class="config-section">
+        <h5>Nouvelle priorité</h5>
+        <div class="priority-options">
+          <div 
+            class="priority-option high"
+            [class.selected]="newPriority === 'high'"
+            (click)="setNewPriority('high')"
+          >
+            <div class="priority-icon">
+              <span class="material-icons">keyboard_arrow_up</span>
+            </div>
+            <div class="priority-label">Haute</div>
+          </div>
+          <div 
+            class="priority-option medium"
+            [class.selected]="newPriority === 'medium'"
+            (click)="setNewPriority('medium')"
+          >
+            <div class="priority-icon">
+              <span class="material-icons">remove</span>
+            </div>
+            <div class="priority-label">Moyenne</div>
+          </div>
+          <div 
+            class="priority-option low"
+            [class.selected]="newPriority === 'low'"
+            (click)="setNewPriority('low')"
+          >
+            <div class="priority-icon">
+              <span class="material-icons">keyboard_arrow_down</span>
+            </div>
+            <div class="priority-label">Basse</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Due Date Configuration -->
+      <div *ngIf="selectedAction === 'set-due-date'" class="config-section">
+        <h5>Date d'échéance</h5>
+        <div class="date-options">
+          <div class="quick-dates">
+            <button 
+              class="quick-date-btn"
+              *ngFor="let option of quickDateOptions"
+              [class.selected]="selectedQuickDate === option.value"
+              (click)="setQuickDate(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+          
+          <div class="custom-date">
+            <label>Date personnalisée</label>
+            <input 
+              type="datetime-local" 
+              [(ngModel)]="customDueDate"
+              (change)="onCustomDateChange()"
+              class="date-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment Section -->
+      <div class="comment-section">
+        <label for="actionComment">Commentaire (optionnel)</label>
+        <textarea 
+          id="actionComment"
+          [(ngModel)]="actionComment"
+          placeholder="Ajoutez un commentaire pour expliquer cette action..."
+          class="comment-textarea"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Action Summary -->
+    <div class="action-summary" *ngIf="selectedAction">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <span class="material-icons">{{ getActionIcon(selectedAction) }}</span>
+        </div>
+        <div class="summary-content">
+          <h5>Résumé de l'action</h5>
+          <p>{{ getActionSummary() }}</p>
+          <div class="affected-items">
+            {{ getEligibleItemsCount() }} éléments seront affectés
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="modal-footer">
+      <div class="footer-info">
+        <span class="material-icons">info</span>
+        <span>Cette action ne peut pas être annulée</span>
+      </div>
+      
+      <div class="footer-actions">
+        <button class="btn btn-secondary" (click)="onClose()">
+          Annuler
+        </button>
+        
+        <button 
+          class="btn btn-primary"
+          [disabled]="!canExecuteAction() || isExecuting"
+          [class.loading]="isExecuting"
+          (click)="executeAction()"
+        >
+          <span *ngIf="!isExecuting" class="btn-content">
+            <span class="material-icons">{{ getActionIcon(selectedAction) }}</span>
+            <span>{{ getExecuteButtonText() }}</span>
+          </span>
+          <span *ngIf="isExecuting" class="loading-content">
+            <span class="loading-spinner"></span>
+            <span>Exécution...</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

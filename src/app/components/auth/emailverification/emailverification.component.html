@@ -1,0 +1,29 @@
+ <div class="login-container">
+
+    <div class="form-div">
+        <div class="welcome-section">
+            <h1>Entrez votre email</h1>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #resetPasswordForm="ngForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" [(ngModel)]="email"  class="form-input"  required  />
+                <div *ngIf="emailInvalid" class="error-message">Veuillez entrer une adresse email valide.</div>
+            </div>
+
+            <button type="submit" class="login-button">Envoyer</button>
+        </form>
+
+        <div *ngIf="message" class="message" [ngClass]="{'success': isSuccess, 'error': !isSuccess}">
+            {{ message }}
+        </div>
+
+        <footer class="footer">
+            &copy; 2024 MBOA. Tous droits réservés.
+        </footer>
+    </div>
+    <div class="image-div">
+        <img src="assets/imgAuth.jpg" alt="Image d'inscription" class="image">
+    </div>
+</div>

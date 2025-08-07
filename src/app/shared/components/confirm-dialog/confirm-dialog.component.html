@@ -1,0 +1,15 @@
+<div class="confirm-dialog-backdrop">
+  <div class="confirm-dialog-modal">
+    <div class="confirm-dialog-header">
+      <span class="material-icons confirm-dialog-icon" [style.color]="iconColor">{{ icon }}</span>
+      <span class="confirm-dialog-title">{{ title }}</span>
+    </div>
+    <div class="confirm-dialog-message">
+      {{ message }}
+    </div>
+    <div class="confirm-dialog-actions">
+      <button class="btn cancel" (click)="onConfirm(false)">{{ cancelText }}</button>
+      <button class="btn confirm" (click)="onConfirm(true)">{{ confirmText }}</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+export interface CombinedNotification {
+  id?: string;
+  type: string;
+  message: string;
+  senderId: string;
+  targetUserId: string;
+  taskId?: string;
+  timestamp?: string; // facultatif, si tu veux afficher la date
+}

@@ -1,0 +1,339 @@
+<br /><br /><br /><br />
+<div class="processes-container fade-in">
+  <div class="processes-header slide-in-down">
+    <h2>Historique des transferts de tâches</h2>
+  </div>
+
+  <div *ngIf="loading" class="skeletons">
+    <div class="skeleton-header skeleton-animate"></div>
+    <div class="skeleton-tabs skeleton-animate"></div>
+    <div class="skeleton-filter skeleton-animate"></div>
+    <div class="skeleton-table skeleton-animate"></div>
+  </div>
+
+  <div *ngIf="!loading" class="processes-content fade-in">
+    <mat-tab-group
+      [(selectedIndex)]="activeTabIndex"
+      (selectedTabChange)="onTabChange($event)"
+    >
+      <mat-tab label="Tous ({{ tabs[0].count }})">
+        <div class="tab-content">
+          <div class="filter-section">
+            <mat-form-field appearance="outline" class="search-filter">
+              <mat-label>Filtrer l'historique</mat-label>
+              <input
+                matInput
+                (input)="applyFilter($any($event.target).value, 'all')"
+                placeholder="Recherche par tâche, initiateur, destinataire..."
+              />
+              <mat-icon matSuffix class="search-icon">search</mat-icon>
+            </mat-form-field>
+          </div>
+          <div class="table-section">
+            <div class="table-wrapper">
+              <table
+                mat-table
+                [dataSource]="dataSourceAll"
+                matSort
+                class="process-table"
+              >
+                <!-- ID Tâche -->
+                <ng-container matColumnDef="taskId">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">ID Tâche</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="mono">{{ t.taskId }}</span>
+                  </td>
+                </ng-container>
+                <!-- Nom Tâche -->
+                <ng-container matColumnDef="taskName">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Nom</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    {{ t.taskName }}
+                  </td>
+                </ng-container>
+                <!-- Initiateur -->
+                <ng-container matColumnDef="from">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Transféré par</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="initiator">{{ t.from }}</span>
+                  </td>
+                </ng-container>
+                <!-- Destinataire -->
+                <ng-container matColumnDef="to">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Destinataire</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="initiator">{{ t.to }}</span>
+                  </td>
+                </ng-container>
+                <!-- Type de transfert -->
+                <ng-container matColumnDef="toType">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Type</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="badge-info">{{ t.toType | titlecase }}</span>
+                  </td>
+                </ng-container>
+                <!-- Date -->
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Date</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    {{ formatDate(t.date) }}
+                  </td>
+                </ng-container>
+                <!-- Statut -->
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Statut</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span [class]="getStatusClass(t.status)">{{
+                      t.status | titlecase
+                    }}</span>
+                  </td>
+                </ng-container>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="displayedColumns"
+                  class="table-header-row"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns"
+                  class="table-data-row"
+                ></tr>
+              </table>
+            </div>
+            <mat-paginator
+              [pageSizeOptions]="[5, 10, 25]"
+              showFirstLastButtons
+              class="table-paginator"
+            ></mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+      <mat-tab label="Envoyés ({{ tabs[1].count }})">
+        <div class="tab-content">
+          <div class="filter-section">
+            <mat-form-field appearance="outline" class="search-filter">
+              <mat-label>Filtrer les envoyés</mat-label>
+              <input
+                matInput
+                (input)="applyFilter($any($event.target).value, 'sent')"
+                placeholder="Recherche par tâche ou destinataire..."
+              />
+              <mat-icon matSuffix class="search-icon">search</mat-icon>
+            </mat-form-field>
+          </div>
+          <div class="table-section">
+            <div class="table-wrapper">
+              <table
+                mat-table
+                [dataSource]="dataSourceSent"
+                matSort
+                class="process-table"
+              >
+                <!-- ID Tâche -->
+                <ng-container matColumnDef="taskId">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">ID Tâche</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="mono">{{ t.taskId }}</span>
+                  </td>
+                </ng-container>
+                <!-- Nom Tâche -->
+                <ng-container matColumnDef="taskName">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Nom</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    {{ t.taskName }}
+                  </td>
+                </ng-container>
+                <!-- Initiateur -->
+                <ng-container matColumnDef="from">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Transféré par</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="initiator">{{ t.from }}</span>
+                  </td>
+                </ng-container>
+                <!-- Destinataire -->
+                <ng-container matColumnDef="to">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Destinataire</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="initiator">{{ t.to }}</span>
+                  </td>
+                </ng-container>
+                <!-- Type de transfert -->
+                <ng-container matColumnDef="toType">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Type</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="badge-info">{{ t.toType | titlecase }}</span>
+                  </td>
+                </ng-container>
+                <!-- Date -->
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Date</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    {{ formatDate(t.date) }}
+                  </td>
+                </ng-container>
+                <!-- Statut -->
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Statut</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span [class]="getStatusClass(t.status)">{{
+                      t.status | titlecase
+                    }}</span>
+                  </td>
+                </ng-container>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="displayedColumns"
+                  class="table-header-row"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns"
+                  class="table-data-row"
+                ></tr>
+              </table>
+            </div>
+            <mat-paginator
+              [pageSizeOptions]="[5, 10, 25]"
+              showFirstLastButtons
+              class="table-paginator"
+            ></mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+      <mat-tab label="Reçus ({{ tabs[2].count }})">
+        <div class="tab-content">
+          <div class="filter-section">
+            <mat-form-field appearance="outline" class="search-filter">
+              <mat-label>Filtrer les reçus</mat-label>
+              <input
+                matInput
+                (input)="applyFilter($any($event.target).value, 'received')"
+                placeholder="Recherche par tâche ou initiateur..."
+              />
+              <mat-icon matSuffix class="search-icon">search</mat-icon>
+            </mat-form-field>
+          </div>
+          <div class="table-section">
+            <div class="table-wrapper">
+              <table
+                mat-table
+                [dataSource]="dataSourceReceived"
+                matSort
+                class="process-table"
+              >
+                <!-- ID Tâche -->
+                <ng-container matColumnDef="taskId">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">ID Tâche</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="mono">{{ t.taskId }}</span>
+                  </td>
+                </ng-container>
+                <!-- Nom Tâche -->
+                <ng-container matColumnDef="taskName">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Nom</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    {{ t.taskName }}
+                  </td>
+                </ng-container>
+                <!-- Initiateur -->
+                <ng-container matColumnDef="from">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Transféré par</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="initiator">{{ t.from }}</span>
+                  </td>
+                </ng-container>
+                <!-- Destinataire -->
+                <ng-container matColumnDef="to">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Destinataire</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="initiator">{{ t.to }}</span>
+                  </td>
+                </ng-container>
+                <!-- Type de transfert -->
+                <ng-container matColumnDef="toType">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Type</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span class="badge-info">{{ t.toType | titlecase }}</span>
+                  </td>
+                </ng-container>
+                <!-- Date -->
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Date</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    {{ formatDate(t.date) }}
+                  </td>
+                </ng-container>
+                <!-- Statut -->
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <span class="column-header">Statut</span>
+                  </th>
+                  <td mat-cell *matCellDef="let t">
+                    <span [class]="getStatusClass(t.status)">{{
+                      t.status | titlecase
+                    }}</span>
+                  </td>
+                </ng-container>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="displayedColumns"
+                  class="table-header-row"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns"
+                  class="table-data-row"
+                ></tr>
+              </table>
+            </div>
+            <mat-paginator
+              [pageSizeOptions]="[5, 10, 25]"
+              showFirstLastButtons
+              class="table-paginator"
+            ></mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

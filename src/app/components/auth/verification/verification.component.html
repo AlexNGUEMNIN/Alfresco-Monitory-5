@@ -1,0 +1,33 @@
+<div class="verification-container">
+
+    <!-- Popup pour le message de confirmation -->
+    <div class="popup" *ngIf="showPopup">
+        <div class="popup-content">
+            <span class="close" (click)="closePopup()" class="close">Fermer</span>
+            <p>Vous avez reçu un code dans votre boîte email.</p>
+        </div>
+    </div>
+
+    <h1>Veuillez entrer le code de vérification ici</h1>
+    
+    <div class="input-container">
+        <input type="text" maxlength="1" (input)="onInput($event, 0)" class="digit-input" />
+        <input type="text" maxlength="1" (input)="onInput($event, 1)" class="digit-input" />
+        <input type="text" maxlength="1" (input)="onInput($event, 2)" class="digit-input" />
+        <input type="text" maxlength="1" (input)="onInput($event, 3)" class="digit-input" />
+        <input type="text" maxlength="1" (input)="onInput($event, 4)" class="digit-input" />
+        <input type="text" maxlength="1" (input)="onInput($event, 5)" class="digit-input" />
+    </div>
+
+    <!-- <button (click)="validateCode()" class="validate-button">Valider</button> -->
+    <button  class="validate-button">Valider</button>
+    
+    <div *ngIf="message" [ngClass]="{'success': isSuccess, 'error': !isSuccess}">
+        {{ message }}
+    </div>
+
+    <button (click)="requestNewCode()" class="request-code-button" [disabled]="isLoading">Demander un nouveau code</button>
+
+    <div *ngIf="isLoading" class="loader">Chargement...</div>
+</div>
+

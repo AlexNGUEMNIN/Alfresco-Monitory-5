@@ -1,0 +1,365 @@
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="relative bg-gradient-to-br from-white via-gray-50 to-white rounded-3xl shadow-2xl p-8 border border-gray-100 overflow-hidden group">
+                <!-- Background Pattern -->
+                <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                <!-- Decorative Elements -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl"></div>
+
+                <div class="relative flex items-center justify-between">
+                    <div class="flex-1">
+                        <!-- Badge -->
+                        <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-sm font-bold tracking-wide mb-4 shadow-lg">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            PROCESSUS APS
+                        </div>
+
+                        <!-- Title -->
+                        <h2 class="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-black via-gray-800 to-red-600 mb-3 leading-tight">
+                            Gestion des Processus
+                        </h2>
+
+                        <!-- Subtitle -->
+                        <p class="text-gray-600 text-lg leading-relaxed max-w-2xl">
+                            Gérez et surveillez vos processus en temps réel avec des outils avancés
+                        </p>
+                    </div>
+
+                    <!-- Right Side Actions -->
+                    <div class="hidden lg:flex items-center space-x-4">
+<!--                        <button-->
+<!--                                (click)="refreshData()"-->
+<!--                                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105">-->
+<!--                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>-->
+<!--                            </svg>-->
+<!--                            <span>Actualiser</span>-->
+<!--                        </button>-->
+
+                        <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div *ngIf="loading" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <!-- Skeleton Tabs -->
+            <div class="flex space-x-1 mb-6">
+                <div *ngFor="let i of [1,2,3,4]; let idx = index"
+                     class="skeleton-animate bg-gray-200 h-12 rounded-lg"
+                     [style.width.px]="[200, 180, 220, 190][idx]"
+                     [style.animation-delay.s]="idx * 0.2">
+                </div>
+            </div>
+
+            <!-- Skeleton Search and Actions -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="skeleton-animate bg-gray-200 h-12 w-80 rounded-lg"></div>
+                <div class="skeleton-animate bg-gray-200 h-12 w-32 rounded-lg"></div>
+            </div>
+
+            <!-- Skeleton Table -->
+            <div class="space-y-3">
+                <div class="skeleton-animate bg-gray-200 h-12 rounded-lg"></div>
+                <div *ngFor="let i of [1,2,3,4,5]; let idx = index"
+                     class="skeleton-animate bg-gray-200 h-12 rounded-lg"
+                     [style.animation-delay.s]="idx * 0.1">
+                </div>
+            </div>
+
+            <!-- Skeleton Pagination -->
+            <div class="flex items-center justify-between mt-6">
+                <div class="skeleton-animate bg-gray-200 h-8 w-48 rounded-lg"></div>
+                <div class="flex space-x-2">
+                    <div *ngFor="let i of [1,2,3]" class="skeleton-animate bg-gray-200 h-8 w-8 rounded"></div>
+                </div>
+                <div class="skeleton-animate bg-gray-200 h-8 w-24 rounded-lg"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div *ngIf="!loading" class="bg-white rounded-xl shadow-sm border border-gray-100 animate-fade-in">
+            <!-- Custom Tabs -->
+            <div class="p-6 pb-0">
+                <div class="flex space-x-1 relative">
+                    <!-- Tab Indicator -->
+                    <div class="absolute bottom-0 left-0 h-0.5 bg-red-600 transition-all duration-300 ease-out"
+                         [style.width.px]="tabIndicatorWidth"
+                         [style.transform]="'translateX(' + tabIndicatorPosition + 'px)'">
+                    </div>
+
+                    <button *ngFor="let tab of tabs; let i = index"
+                            (click)="selectTab(i)"
+                            [class]="getTabClasses(i)"
+                            class="flex items-center space-x-3 px-6 py-4 rounded-t-lg font-medium transition-all duration-200">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path [attr.d]="getTabIcon(i)"></path>
+                        </svg>
+                        <span>{{ tab.label }}</span>
+                        <span [class]="getTabBadgeClasses(i)">{{ tab.count }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Search and Bulk Actions -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="relative flex-1 max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <input
+                                type="text"
+                                [(ngModel)]="currentSearchValue"
+                                (input)="applyFilter(currentSearchValue)"
+                                placeholder="Recherche par initiateur ou nom..."
+                                class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                        <button *ngIf="currentSearchValue"
+                                (click)="clearSearch()"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Bulk Actions -->
+                    <div *ngIf="selectedProcessIds.size > 0"
+                         class="bg-red-50 border border-red-200 rounded-lg px-4 py-2 flex items-center space-x-2 animate-fade-in">
+                        <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-red-800 font-medium">{{ selectedProcessIds.size }} sélectionnés</span>
+                        <button (click)="showBulkActionsModal = true"
+                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                            Actions
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left">
+                                    <input type="checkbox"
+                                           [checked]="isAllSelected()"
+                                           [indeterminate]="isPartiallySelected()"
+                                           (change)="toggleAllRows()"
+                                           class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                </th>
+                                <th *ngFor="let col of tableColumns"
+                                    (click)="sortData(col.key)"
+                                    class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                                    <div class="flex items-center space-x-1">
+                                        <span>{{ col.label }}</span>
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tr *ngFor="let process of paginatedData; trackBy: trackByProcessId"
+                                class="hover:bg-gray-50 transition-colors"
+                                [class.bg-red-50]="isSelected(process)">
+                                <td class="px-6 py-4">
+                                    <input type="checkbox"
+                                           [checked]="isSelected(process)"
+                                           (change)="toggleSelection(process)"
+                                           (click)="$event.stopPropagation()"
+                                           class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="font-mono text-sm text-gray-900 bg-gray-100 px-2 py-1 rounded">
+                                      {{ process.processInstanceId }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 font-medium">{{ process.processDefinitionId }}</div>
+                                    <div class="text-sm text-gray-500">Version {{ getProcessVersion(process) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ formatDate(process.processStartTime) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-red-600 font-semibold text-sm">
+                                              {{ getInitials(process.processInitiator) }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ process.processInitiator }}</div>
+                                            <div class="text-sm text-gray-500">{{ getProcessRole(process) }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center space-x-2">
+                                        <button (click)="onToggleProcessSuspension(process.processInstanceId, true)"
+                                                class="text-green-600 hover:text-green-800 hover:bg-green-50 p-2 rounded-lg transition-colors"
+                                                title="Reprendre">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </button>
+                                        <button (click)="onToggleProcessSuspension(process.processInstanceId, false)"
+                                                class="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 p-2 rounded-lg transition-colors"
+                                                title="Suspendre">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </button>
+                                        <button (click)="onTransferTask(process)"
+                                                class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+                                                title="Transférer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                            </svg>
+                                        </button>
+                                        <button (click)="onTerminateProcess(process.processInstanceId)"
+                                                class="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                                title="Terminer">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Custom Pagination -->
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <!-- Pagination Info -->
+                            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                                <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>
+                      Affichage <strong>{{ (currentPage - 1) * pageSize + 1 }}</strong> à
+                      <strong>{{ Math.min(currentPage * pageSize, filteredData.length) }}</strong>
+                      sur <strong>{{ filteredData.length }}</strong> processus
+                    </span>
+                            </div>
+
+                            <!-- Pagination Controls -->
+                            <div class="flex items-center space-x-2">
+                                <button (click)="previousPage()"
+                                        [disabled]="currentPage === 1"
+                                        class="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                    Précédent
+                                </button>
+
+                                <div class="flex space-x-1">
+                                    <button *ngFor="let pageNum of visiblePageNumbers"
+                                            (click)="pageNum > 0 ? goToPage(pageNum) : null"
+                                            [disabled]="pageNum === -1"
+                                            [class]="getPageButtonClasses(pageNum)"
+                                            class="px-3 py-2 text-sm font-medium border rounded-lg transition-colors">
+                                        <span *ngIf="pageNum > 0">{{ pageNum }}</span>
+                                        <span *ngIf="pageNum === -1">...</span>
+                                    </button>
+                                </div>
+
+                                <button (click)="nextPage()"
+                                        [disabled]="currentPage === totalPages"
+                                        class="flex items-center px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    Suivant
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Page Size Selector -->
+                            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                                <span>Afficher</span>
+                                <select [(ngModel)]="pageSize"
+                                        (change)="onPageSizeChange()"
+                                        class="border border-gray-300 rounded-lg px-3 py-1 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                    <option [value]="5">5</option>
+                                    <option [value]="10">10</option>
+                                    <option [value]="25">25</option>
+                                    <option [value]="50">50</option>
+                                </select>
+                                <span>par page</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <app-task-transfer-modal
+                *ngIf="showTransferModal"
+                [isOpen]="showTransferModal"
+                [taskData]="selectedTaskForTransfer"
+                (closeModal)="onCloseTransferModal()"
+                (taskTransferred)="onTaskTransferred($event)">
+        </app-task-transfer-modal>
+
+        <app-confirm-dialog
+                *ngIf="showBulkConfirmDialog"
+                [title]="bulkConfirmDialogConfig.title"
+                [message]="bulkConfirmDialogConfig.message"
+                [confirmText]="bulkConfirmDialogConfig.confirmText"
+                [cancelText]="bulkConfirmDialogConfig.cancelText"
+                [icon]="bulkConfirmDialogConfig.icon"
+                [iconColor]="bulkConfirmDialogConfig.iconColor"
+                [theme]="bulkConfirmDialogConfig.theme"
+                (confirmed)="onBulkConfirmDialogResult($event)">
+        </app-confirm-dialog>
+
+        <app-bulk-actions-modal
+                *ngIf="showBulkActionsModal"
+                [actions]="bulkActions"
+                [selectedCount]="selectedProcessIds.size"
+                (close)="showBulkActionsModal = false"
+                (actionSelected)="performBulkAction($event)">
+        </app-bulk-actions-modal>
+
+        <!-- Toast Notifications -->
+        <div class="fixed top-4 right-4 z-50 space-y-2">
+            <app-toast-notification
+                    *ngFor="let toast of toasts"
+                    [title]="toast.title"
+                    [message]="toast.message"
+                    [type]="toast.type"
+                    [duration]="toast.duration || 0"
+                    [isVisible]="true"
+                    (closed)="removeToast(toast.id)">
+            </app-toast-notification>
+        </div>
+    </div>
+</div>

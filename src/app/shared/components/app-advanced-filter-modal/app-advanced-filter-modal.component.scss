@@ -1,0 +1,156 @@
+// Variables - Bank color scheme
+$primary-red: #b71c1c;
+$light-red: #d32f2f;
+$dark-red: #7f0000;
+$white: #ffffff;
+$black: #000000;
+$light-gray: #f5f5f5;
+$medium-gray: #e0e0e0;
+$dark-gray: #757575;
+$modal-width: 360px;
+$modal-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+$border-radius: 8px;
+
+// Backdrop and Modal Structure
+   .modal-backdrop {
+       position: fixed;
+       inset: 0;
+       background: rgba(0, 0, 0, 0.5);
+       z-index: 1050;
+       display: flex;
+       justify-content: flex-end;
+       align-items: stretch;
+
+       .modal-content {
+           background: $white;
+           box-shadow: $modal-shadow;
+           border-radius: $border-radius 0 0 $border-radius;
+           width: $modal-width;
+           max-width: 90vw;
+           height: 100vh;
+           display: flex;
+           flex-direction: column;
+           overflow: hidden;
+           border: none;
+
+           .modal-header {
+               background-color: $primary-red;
+               color: $white;
+               padding: 1.5rem;
+               border-bottom: none;
+
+               .modal-title {
+                   margin: 0;
+                   font-size: 1.5rem;
+                   font-weight: 600;
+                   text-align: center;
+                   width: 100%;
+               }
+           }
+
+           .modal-body {
+               padding: 1.5rem;
+               overflow-y: auto;
+               flex: 1;
+
+               .form-group {
+                   margin-bottom: 1.5rem;
+
+                   label {
+                       display: block;
+                       margin-bottom: 0.5rem;
+                       font-weight: 500;
+                       color: $dark-gray;
+                   }
+
+                   .form-control, .form-select {
+                       border: 1px solid $medium-gray;
+                       border-radius: $border-radius;
+                       padding: 0.75rem;
+                       transition: all 0.2s ease;
+
+                       &:focus {
+                           border-color: $light-red;
+                           box-shadow: 0 0 0 0.2rem rgba($light-red, 0.25);
+                       }
+                   }
+
+                   .dropdown-container {
+                       position: relative;
+
+                       .dropdown-list {
+                           position: absolute;
+                           top: 100%;
+                           left: 0;
+                           width: 100%;
+                           max-height: 200px;
+                           overflow-y: auto;
+                           background-color: $white;
+                           border: 1px solid $medium-gray;
+                           border-radius: 0 0 $border-radius $border-radius;
+                           z-index: 1060;
+                           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+                           .dropdown-item {
+                               padding: 0.75rem 1rem;
+                               cursor: pointer;
+                               transition: background-color 0.2s;
+
+                               &:hover {
+                                   background-color: rgba($light-red, 0.1);
+                                   color: $primary-red;
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+
+           .modal-footer {
+               padding: 1rem 1.5rem;
+               border-top: 1px solid $medium-gray;
+               display: flex;
+               justify-content: flex-end;
+               gap: 1rem;
+
+               .btn {
+                   padding: 0.6rem 1.5rem;
+                   font-weight: 500;
+                   border-radius: $border-radius;
+                   transition: all 0.3s ease;
+
+                   &.btn-outline-danger {
+                       color: $primary-red;
+                       border-color: $primary-red;
+
+                       &:hover {
+                           background-color: $primary-red;
+                           color: $white;
+                       }
+                   }
+
+                   &.btn-danger {
+                       background-color: $primary-red;
+                       border-color: $primary-red;
+
+                       &:hover {
+                           background-color: $dark-red;
+                           border-color: $dark-red;
+                       }
+                   }
+               }
+           }
+       }
+   }
+
+// Extra styling for a crisp, professional look
+:host {
+       ::ng-deep {
+           .form-select {
+               background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23b71c1c' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+               background-repeat: no-repeat;
+               background-position: right 0.75rem center;
+               background-size: 16px 12px;
+           }
+       }
+   }

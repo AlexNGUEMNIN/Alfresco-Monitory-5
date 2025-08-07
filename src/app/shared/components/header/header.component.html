@@ -1,0 +1,125 @@
+<header class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="px-6 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Left Section: Menu Toggle & Title -->
+            <div class="flex items-center space-x-6">
+                <!-- Mobile Menu Toggle -->
+                <button
+                        class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 lg:hidden"
+                        (click)="onToggleSidebar()"
+                        [title]="sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'"
+                >
+          <span class="material-icons text-xl">
+            {{ sidebarCollapsed ? 'menu' : 'menu_open' }}
+          </span>
+                </button>
+
+                <!-- Desktop Menu Toggle -->
+                <button
+                        class="hidden lg:flex p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                        (click)="onToggleSidebar()"
+                        [title]="sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'"
+                >
+          <span class="material-icons text-xl">
+            {{ sidebarCollapsed ? 'menu' : 'menu_open' }}
+          </span>
+                </button>
+
+                <!-- Page Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                        <span class="material-icons text-white text-sm">monitoring</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">APS First Monitoring</h1>
+                        <p class="text-sm text-gray-500">Process Management Dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section: Actions & User -->
+            <div class="flex items-center space-x-4">
+                <!-- Date/Time Display -->
+                <div class="hidden md:flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg">
+                    <span class="material-icons text-gray-500 text-sm">schedule</span>
+                    <span class="text-sm font-medium text-gray-700">
+            {{ currentDate | date : "MMM d, y • HH:mm" }}
+          </span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center space-x-2">
+                    <!-- Notifications -->
+                    <button
+                            class="relative p-2 rounded-lg text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 group"
+                            (click)="onNotificationsClick()"
+                            title="View notifications"
+                    >
+                        <span class="material-icons text-xl">notifications</span>
+                        <span
+                                *ngIf="notificationCount() > 0"
+                                class="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse"
+                        >
+              {{ notificationCount() > 99 ? '99+' : notificationCount() }}
+            </span>
+                    </button>
+
+                    <!-- Help -->
+                    <a
+                            class="p-2 rounded-lg text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                            href="assets/upload/Guide_Utilisation_App_Monitoring_APS.pdf"
+                            download="Guide_Utilisation_App_Monitoring_APS.pdf"
+                            title="Download user guide"
+                            target="_blank"
+                            rel="noopener"
+                    >
+                        <span class="material-icons text-xl">help</span>
+                    </a>
+
+                    <!-- Settings -->
+                    <button
+                            class="p-2 rounded-lg text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                            (click)="onSettingsClick()"
+                            title="System settings"
+                    >
+                        <span class="material-icons text-xl">settings</span>
+                    </button>
+                </div>
+
+                <!-- User Profile -->
+                <div class="flex items-center space-x-3 pl-4 border-l border-gray-200">
+                    <div class="relative">
+                        <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                            <span class="material-icons text-white text-lg">account_circle</span>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+
+                    <div class="hidden md:block">
+                        <div class="text-sm font-semibold text-gray-900">{{ userName() }}</div>
+                        <div class="text-xs text-gray-500 flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            {{ userRole() }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar (Optional - for loading states) -->
+    <div class="h-1 bg-gray-100">
+        <div class="h-full bg-gradient-to-r from-red-500 to-red-600 w-0 transition-all duration-300"></div>
+    </div>
+
+    <!-- Modals -->
+    <app-notifications-modal
+            [isOpen]="showNotificationsModal()"
+            (closeModal)="onCloseNotificationsModal()"
+    ></app-notifications-modal>
+
+    <app-settings-modal
+            [isOpen]="showSettingsModal()"
+            (closeModal)="onCloseSettingsModal()"
+    ></app-settings-modal>
+</header>

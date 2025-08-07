@@ -1,0 +1,18 @@
+<div class="status-card" [ngClass]="'card-' + color">
+  <div class="card-icon">
+    <span class="material-icons">{{ icon }}</span>
+  </div>
+  
+  <div class="card-content">
+    <h3 class="card-title">{{ title }}</h3>
+    <div class="card-value">
+      {{ value | number }}
+      <span *ngIf="suffix">{{ suffix }}</span>
+    </div>
+    
+    <div *ngIf="trend !== undefined" class="card-trend" [ngClass]="{'positive': trendPositive, 'negative': !trendPositive}">
+      <span class="material-icons">{{ trendPositive ? 'trending_up' : 'trending_down' }}</span>
+      <span>{{ trend }}%</span>
+    </div>
+  </div>
+</div>

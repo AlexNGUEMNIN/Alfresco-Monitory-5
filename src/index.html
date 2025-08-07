@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>APS First Monitoring - Afriland First Bank</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <base href="/" />
+    <style>
+      #custom-loader-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.7s cubic-bezier(0.77, 0, 0.18, 1);
+      }
+      #custom-loader-bg.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .custom-loader-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+      .custom-loader-logo {
+        width: 91px;
+        height: 61px;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 8px 32px #c7000055) drop-shadow(0 0 8px #fff8);
+        animation: logo-spin 2.2s cubic-bezier(0.77, 0, 0.18, 1) infinite;
+        position: relative;
+        z-index: 1;
+      }
+      @keyframes logo-spin {
+        0% {
+          transform: rotate(0) scale(1);
+        }
+        80% {
+          transform: rotate(360deg) scale(1.08);
+        }
+        87% {
+          transform: rotate(360deg) scale(1.12);
+        }
+        92%,
+        100% {
+          transform: rotate(360deg) scale(1);
+        }
+      }
+      .custom-loader-halo {
+        position: absolute;
+        width: 140px;
+        height: 140px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, calc(-50% - 16px));
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          #fff6 0%,
+          #ff000048 60%,
+          transparent 100%
+        );
+        filter: blur(8px);
+        z-index: 0;
+        animation: halo-pulse 2.2s cubic-bezier(0.77, 0, 0.18, 1) infinite;
+        pointer-events: none;
+      }
+      @keyframes halo-pulse {
+        0%,
+        100% {
+          opacity: 0.7;
+          transform: translate(-50%, calc(-50% - 16px)) scale(1);
+        }
+        60% {
+          opacity: 1;
+          transform: translate(-50%, calc(-50% - 16px)) scale(1.08);
+        }
+        80% {
+          opacity: 0.8;
+          transform: translate(-50%, calc(-50% - 16px)) scale(1.13);
+        }
+      }
+      .custom-loader-text {
+        font-family: "Dancing Script", cursive;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #e41e26;
+        letter-spacing: 0.02em;
+        text-shadow: -1px -1px 0 #7900005e, 1px -1px 0 #790000,
+          -1px 1px 0 #790000, 1px 1px 0 #790000, 2px 2px 3px rgba(0, 0, 0, 0.5);
+        animation: text-fadein 1.2s cubic-bezier(0.77, 0, 0.18, 1);
+        transform: rotate(-2deg);
+        background: linear-gradient(
+          to bottom,
+          #e20d0d68 0%,
+          #c70000 50%,
+          #8d0000 100%
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+        text-stroke: 1px #790000;
+        -webkit-text-stroke: 1px #790000;
+        position: relative;
+        padding: 0 5px;
+      }
+
+      /* Ajout d'un style personnalisé pour "The Pact with Success..." */
+      .custom-loader-container .custom-loader-text {
+        display: inline-block;
+        filter: drop-shadow(0px 2px 1px rgba(0, 0, 0, 0.3));
+      }
+
+      @keyframes text-fadein {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      app-root {
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      app-root.ready {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="custom-loader-bg">
+      <div class="custom-loader-container">
+        <div class="custom-loader-halo"></div>
+        <img
+          class="custom-loader-logo"
+          src="assets/images/afriland-loader-taskbar.png"
+          alt="Afriland First Bank Logo"
+        />
+        <div
+          class="custom-loader-text"
+          style="
+            color: #EF4C4E;
+            margin-top: 5px;
+              background: none;
+            -webkit-text-stroke: 0.5px #cf0f19;
+          "
+        >
+          The Pact with Success...
+        </div>
+      </div>
+    </div>
+    <app-root></app-root>
+    <script>
+      let loaderHidden = false,
+        loaderStart = Date.now();
+      function hideLoader() {
+        if (loaderHidden) return;
+        loaderHidden = true;
+        const appRoot = document.querySelector("app-root"),
+          loader = document.getElementById("custom-loader-bg");
+        const minDuration = 1000,
+          elapsed = Date.now() - loaderStart;
+        function doHide() {
+          loader.classList.add("hide");
+          appRoot.classList.add("ready");
+          setTimeout(() => {
+            loader.style.display = "none";
+          }, 700);
+        }
+        elapsed < minDuration
+          ? setTimeout(doHide, minDuration - elapsed)
+          : doHide();
+      }
+      function checkReady() {
+        const appRoot = document.querySelector("app-root");
+        if (!appRoot) return;
+        if (appRoot.children.length || appRoot.innerHTML.trim()) hideLoader();
+        else {
+          const obs = new MutationObserver(() => {
+            if (appRoot.children.length || appRoot.innerHTML.trim()) {
+              hideLoader();
+              obs.disconnect();
+            }
+          });
+          obs.observe(appRoot, { childList: true, subtree: true });
+          setTimeout(() => {
+            hideLoader();
+            obs.disconnect();
+          }, 10000);
+        }
+      }
+      document.addEventListener("DOMContentLoaded", checkReady);
+      setTimeout(hideLoader, 15000);
+    </script>
+    <script>
+      if (global === undefined) {
+        var global = window;
+      }
+    </script>
+  </body>
+</html>

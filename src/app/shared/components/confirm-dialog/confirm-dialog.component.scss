@@ -1,0 +1,118 @@
+.confirm-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-dialog-modal {
+  background: #fff;
+  color: #1e293b;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(30, 41, 59, 0.18);
+  min-width: 340px;
+  max-width: 90vw;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  animation: popup-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.confirm-dialog-modal.danger {
+  // Optionnel: bordure ou ombre rouge
+  box-shadow: 0 8px 32px #ef444422;
+}
+
+@keyframes popup-in {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.confirm-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.confirm-dialog-icon {
+  font-size: 2.2rem;
+  color: #f59e42;
+  background: #fff7ed;
+  border-radius: 50%;
+  padding: 0.3rem;
+  box-shadow: 0 2px 8px #f59e4222;
+}
+
+.confirm-dialog-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.confirm-dialog-title.danger,
+.confirm-dialog-message.danger {
+  color: #ef4444;
+}
+
+.confirm-dialog-message {
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
+  color: #475569;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.btn.cancel {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.btn.cancel:hover {
+  background: #e2e8f0;
+}
+
+.btn.confirm {
+  background: linear-gradient(135deg, #f59e42 0%, #d97706 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px #f59e4222;
+}
+
+.btn.confirm.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px #ef444422;
+}
+
+.btn.confirm:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e42 100%);
+}
+
+.btn.confirm.danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+}

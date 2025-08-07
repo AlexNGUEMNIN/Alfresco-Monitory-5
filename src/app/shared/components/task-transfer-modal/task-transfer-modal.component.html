@@ -1,0 +1,1262 @@
+<div class="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50" *ngIf="isOpen" (click)="onBackdropClick($event)">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden transform transition-all">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-6">
+            <div *ngIf="transferError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>{{ errorMessage }}</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold">
+                        Transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche' }}
+                    </h3>
+                </div>
+                <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors" (click)="onClose()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto max-h-[60vh]">
+            <!-- Step 1: Assignee Type Selection -->
+            <div *ngIf="currentStep === 1 && !selectedManagerTransferType && !selectedGroupTransferType" class="space-y-6">
+                <!-- Task Information -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h4 *ngIf="getTasksArray().length === 1" class="text-lg font-semibold text-gray-900 mb-3">
+                        Tâche: {{ getTasksArray()[0].name }}
+                    </h4>
+                    <h4 *ngIf="getTasksArray().length > 1" class="text-lg font-semibold text-gray-900 mb-3">
+                        {{ getTasksArray().length }} tâches sélectionnées
+                    </h4>
+
+                    <div *ngIf="getTasksArray().length === 1" class="space-y-3">
+                        <p class="text-gray-600">{{ getTasksArray()[0].description }}</p>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Créée: {{ getTasksArray()[0].created | date:'medium' }}
+                            </div>
+                            <div *ngIf="getTasksArray()[0].dueDate" class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Échéance: {{ getTasksArray()[0].dueDate | date:'medium' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="getTasksArray().length > 1" class="space-y-2">
+                        <div *ngFor="let task of getTasksArray()" class="flex items-center p-3 bg-white rounded-lg">
+                            <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <span class="font-medium text-gray-900">{{ task.name }}</span>
+                            <span *ngIf="task.dueDate" class="ml-auto text-sm text-gray-500">
+                                (échéance: {{ task.dueDate | date:'shortDate' }})
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Options -->
+                <div class="space-y-4">
+                    <h5 class="text-lg font-semibold text-gray-900">Sélectionnez le destinataire :</h5>
+
+                    <!-- Manager Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedAssigneeType === 'manager' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectAssigneeType('manager')">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedAssigneeType === 'manager' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedAssigneeType === 'manager' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Manager</h6>
+                                <p class="text-gray-600 text-sm">Transférer au manager responsable</p>
+                            </div>
+                            <div *ngIf="selectedAssigneeType === 'manager'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Group Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedAssigneeType === 'group' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectAssigneeType('group')">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedAssigneeType === 'group' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedAssigneeType === 'group' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Groupe d'utilisateurs</h6>
+                                <p class="text-gray-600 text-sm">Transférer à un groupe de travail</p>
+                            </div>
+                            <div *ngIf="selectedAssigneeType === 'group'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedAssigneeType === 'user' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectAssigneeType('user')">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedAssigneeType === 'user' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedAssigneeType === 'user' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Utilisateur spécifique</h6>
+                                <p class="text-gray-600 text-sm">Choisir un utilisateur dans la liste</p>
+                            </div>
+                            <div *ngIf="selectedAssigneeType === 'user'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1.1: Manager Transfer Type Selection -->
+            <div *ngIf="currentStep === 1 && selectedAssigneeType === 'manager'" class="space-y-6">
+                <div class="space-y-4">
+                    <h5 class="text-lg font-semibold text-gray-900">Choisissez le type de transfert au manager :</h5>
+
+                    <!-- Its Manager Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedManagerTransferType === 'itsManager' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectManagerTransferType('itsManager'); openManagerConfirmationModal()">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedManagerTransferType === 'itsManager' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedManagerTransferType === 'itsManager' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2L3 9h3v8h8v-8h3l-7-7z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Transférer à son manager</h6>
+                                <p class="text-gray-600 text-sm">Le manager responsable de la tâche</p>
+                            </div>
+                            <div *ngIf="selectedManagerTransferType === 'itsManager'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other Manager Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedManagerTransferType === 'otherManager' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectManagerTransferType('otherManager'); goToManagerSelectionStep()">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedManagerTransferType === 'otherManager' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedManagerTransferType === 'otherManager' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Transférer à un autre manager</h6>
+                                <p class="text-gray-600 text-sm">Sélectionner un autre manager</p>
+                            </div>
+                            <div *ngIf="selectedManagerTransferType === 'otherManager'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1.1: Group Transfer Type Selection -->
+            <div *ngIf="currentStep === 1 && selectedAssigneeType === 'group'" class="space-y-6">
+                <div class="space-y-4">
+                    <h5 class="text-lg font-semibold text-gray-900">Choisissez le type de transfert de groupe :</h5>
+
+                    <!-- Its Group Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedGroupTransferType === 'itsGroup' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectGroupTransferType('itsGroup'); openGroupConfirmationModal()">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedGroupTransferType === 'itsGroup' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedGroupTransferType === 'itsGroup' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Transférer à son groupe</h6>
+                                <p class="text-gray-600 text-sm">Le groupe associé à la tâche</p>
+                            </div>
+                            <div *ngIf="selectedGroupTransferType === 'itsGroup'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other Group Option -->
+                    <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedGroupTransferType === 'otherGroup' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectGroupTransferType('otherGroup'); goToGroupSelectionStep()">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                 [class]="selectedGroupTransferType === 'otherGroup' ? 'bg-red-100' : 'bg-gray-100'">
+                                <svg class="w-6 h-6" [class]="selectedGroupTransferType === 'otherGroup' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">Transférer à un autre groupe</h6>
+                                <p class="text-gray-600 text-sm">Sélectionner un autre groupe</p>
+                            </div>
+                            <div *ngIf="selectedGroupTransferType === 'otherGroup'" class="text-red-600">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Manager Selection -->
+            <div *ngIf="currentStep === 2 && selectedManagerTransferType === 'otherManager'" class="space-y-6">
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors" (click)="goBack()">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>Retour</span>
+                    </button>
+                    <h5 class="text-lg font-semibold text-gray-900">Sélectionner un manager</h5>
+                </div>
+
+                <!-- Manager Search -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input
+                            type="text"
+                            placeholder="Rechercher un manager..."
+                            [(ngModel)]="managerSearchTerm"
+                            (input)="filterManagers()"
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" />
+                </div>
+
+                <!-- Loading Managers -->
+                <div *ngIf="loadingManagers" class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                    <p class="text-gray-600">Chargement des managers...</p>
+                </div>
+
+                <!-- Managers List -->
+                <div *ngIf="!loadingManagers && filteredManagers.length > 0" class="space-y-3 max-h-80 overflow-y-auto">
+                    <div *ngFor="let manager of filteredManagers"
+                         class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedManagerId === manager.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectManagerAndSend(manager.id)">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">{{ manager.firstName }} {{ manager.lastName }}</h6>
+                                <p class="text-red-600 text-sm font-medium">{{ manager.role }}</p>
+                                <p class="text-gray-500 text-sm">{{ manager.email }}</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center text-sm" [class]="manager.isActive ? 'text-green-600' : 'text-gray-400'">
+                                    <div class="w-2 h-2 rounded-full mr-2" [class]="manager.isActive ? 'bg-green-500' : 'bg-gray-400'"></div>
+                                    {{ manager.isActive ? 'Actif' : 'Inactif' }}
+                                </div>
+                                <div *ngIf="selectedManagerId === manager.id" class="text-red-600">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Managers Found -->
+                <div *ngIf="!loadingManagers && filteredManagers.length === 0" class="text-center py-12">
+                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600">Aucun manager trouvé.</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Group Selection -->
+            <div *ngIf="currentStep === 2 && selectedGroupTransferType === 'otherGroup'" class="space-y-6">
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors" (click)="goBack()">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>Retour</span>
+                    </button>
+                    <h5 class="text-lg font-semibold text-gray-900">Sélectionner un groupe</h5>
+                </div>
+
+                <!-- Group Search -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input
+                            type="text"
+                            placeholder="Rechercher un groupe..."
+                            [(ngModel)]="groupSearchTerm"
+                            (input)="filterGroups()"
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" />
+                </div>
+
+                <!-- Loading Groups -->
+                <div *ngIf="loadingGroups" class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                    <p class="text-gray-600">Chargement des groupes...</p>
+                </div>
+
+                <!-- Groups List -->
+                <div *ngIf="!loadingGroups && filteredGroups.length > 0" class="space-y-3 max-h-80 overflow-y-auto">
+                    <div *ngFor="let group of filteredGroups"
+                         class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedOtherGroupId === group.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectOtherGroup(group.id)">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">{{ group.name }}</h6>
+                                <p class="text-blue-600 text-sm font-medium">Groupe</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center text-sm text-green-600">
+                                    <div class="w-2 h-2 rounded-full mr-2 bg-green-500"></div>
+                                    Actif
+                                </div>
+                                <div *ngIf="selectedOtherGroupId === group.id" class="text-red-600">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Groups Found -->
+                <div *ngIf="!loadingGroups && filteredGroups.length === 0" class="text-center py-12">
+                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600">Aucun groupe trouvé.</p>
+                </div>
+            </div>
+
+            <!-- Step 2: User Selection -->
+            <div *ngIf="currentStep === 2 && selectedAssigneeType === 'user'" class="space-y-6">
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors" (click)="goBack()">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>Retour</span>
+                    </button>
+                    <h5 class="text-lg font-semibold text-gray-900">Sélectionner un utilisateur</h5>
+                </div>
+
+                <!-- User Search -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input
+                            type="text"
+                            placeholder="Rechercher un utilisateur..."
+                            [(ngModel)]="searchTerm"
+                            (input)="filterUsers()"
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" />
+                </div>
+
+                <!-- Users List -->
+                <div *ngIf="!loadingUsers && filteredUsers.length > 0" class="space-y-3 max-h-80 overflow-y-auto">
+                    <div *ngFor="let user of filteredUsers"
+                         class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                         [class]="selectedUserId === user.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                         (click)="selectUser(user.id)">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h6 class="font-semibold text-gray-900">{{ user.firstName }} {{ user.lastName }}</h6>
+                                <p class="text-gray-600 text-sm">{{ user.role }}</p>
+                                <p class="text-gray-500 text-sm">{{ user.email }}</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center text-sm" [class]="user.isActive ? 'text-green-600' : 'text-gray-400'">
+                                    <div class="w-2 h-2 rounded-full mr-2" [class]="user.isActive ? 'bg-green-500' : 'bg-gray-400'"></div>
+                                    {{ user.isActive ? 'Actif' : 'Inactif' }}
+                                </div>
+                                <div *ngIf="selectedUserId === user.id" class="text-red-600">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Users Found -->
+                <div *ngIf="!loadingUsers && filteredUsers.length === 0" class="text-center py-12">
+                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600">Aucun utilisateur trouvé.</p>
+                </div>
+
+                <!-- Loading Users -->
+                <div *ngIf="loadingUsers" class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                    <p class="text-gray-600">Chargement des utilisateurs...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div class="flex items-center justify-end space-x-3">
+                <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors" (click)="onClose()">
+                    Annuler
+                </button>
+
+                <!-- User Transfer Button -->
+                <button *ngIf="selectedAssigneeType === 'user'"
+                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                        [disabled]="!canProceed() || transferring"
+                        (click)="onTransfer()">
+                    <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <svg *ngIf="!transferring" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <span>{{ transferring ? 'Transfert...' : 'Transférer' }}</span>
+                </button>
+
+                <!-- Group Transfer Button for Other Group -->
+                <button *ngIf="selectedAssigneeType === 'group' && currentStep === 2 && selectedGroupTransferType === 'otherGroup'"
+                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                        [disabled]="!selectedOtherGroupId || transferring"
+                        (click)="openGroupConfirmationModal()">
+                    <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                    </svg>
+                    <span>{{ transferring ? 'Transfert...' : 'Transférer au groupe' }}</span>
+                </button>
+
+                <!-- Manager Transfer Button for Other Manager -->
+                <button *ngIf="selectedAssigneeType === 'manager' && currentStep === 2 && selectedManagerTransferType === 'otherManager'"
+                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                        [disabled]="!selectedManagerId || transferring"
+                        (click)="openManagerConfirmationModal()">
+                    <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                    </svg>
+                    <span>{{ transferring ? 'Transfert...' : 'Transférer au manager' }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager Confirmation Modal -->
+    <div *ngIf="showManagerConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]" (click)="onConfirmationBackdrop($event)">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold">Confirmation de transfert</h3>
+                    </div>
+                    <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors" (click)="closeConfirmationModal()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                        Êtes-vous sûr de vouloir transférer {{ getTasksArray().length > 1 ? 'ces tâches' : 'cette tâche' }} au manager ?
+                    </h4>
+                    <p *ngIf="selectedManagerTransferType === 'itsManager'" class="text-gray-600 mb-6">
+                        Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} au manager responsable.
+                    </p>
+                    <p *ngIf="selectedManagerTransferType === 'otherManager' && selectedManager" class="text-gray-600 mb-6">
+                        Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} à <strong>{{ selectedManager.firstName }} {{ selectedManager.lastName }}</strong>.
+                    </p>
+                </div>
+                <div class="flex items-center justify-end space-x-3">
+                    <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors" (click)="closeConfirmationModal()">
+                        Annuler
+                    </button>
+                    <button class="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                            [disabled]="transferring"
+                            (click)="selectedManagerTransferType === 'itsManager' ? onManagerTransfer() : onConfirmManagerTransfer()">
+                        <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>{{ transferring ? 'Transfert en cours...' : 'Confirmer le transfert' }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Confirmation Modal -->
+    <div *ngIf="showGroupConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]" (click)="onConfirmationBackdrop($event)">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold">Confirmation de transfert</h3>
+                    </div>
+                    <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors" (click)="closeConfirmationModal()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                        Êtes-vous sûr de vouloir transférer {{ getTasksArray().length > 1 ? 'ces tâches' : 'cette tâche' }} au groupe ?
+                    </h4>
+                    <p *ngIf="selectedGroupTransferType === 'itsGroup'" class="text-gray-600 mb-6">
+                        Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} au groupe associé.
+                    </p>
+                    <p *ngIf="selectedGroupTransferType === 'otherGroup' && selectedGroup" class="text-gray-600 mb-6">
+                        Vous êtes sur le point de transférer {{ getTasks<!-- filepath: d:\Afriland\Monitory_system\monitory_system\Front_end\src\app\shared\components\task-transfer-modal\task-transfer-modal.component.html -->
+                    <div class="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50" *ngIf="isOpen" (click)="onBackdropClick($event)">
+                        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden transform transition-all">
+                            <!-- Modal Header -->
+                            <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-6">
+                                <div *ngIf="transferError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>{{ errorMessage }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-xl font-bold">
+                                            Transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche' }}
+                                        </h3>
+                                    </div>
+                                    <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors" (click)="onClose()">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                                <!-- Step 1: Assignee Type Selection -->
+                                <div *ngIf="currentStep === 1 && !selectedManagerTransferType && !selectedGroupTransferType" class="space-y-6">
+                                    <!-- Task Information -->
+                                    <div class="bg-gray-50 rounded-xl p-6">
+                                        <h4 *ngIf="getTasksArray().length === 1" class="text-lg font-semibold text-gray-900 mb-3">
+                                            Tâche: {{ getTasksArray()[0].name }}
+                                        </h4>
+                                        <h4 *ngIf="getTasksArray().length > 1" class="text-lg font-semibold text-gray-900 mb-3">
+                                            {{ getTasksArray().length }} tâches sélectionnées
+                                        </h4>
+
+                                        <div *ngIf="getTasksArray().length === 1" class="space-y-3">
+                                            <p class="text-gray-600">{{ getTasksArray()[0].description }}</p>
+                                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                                <div class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    Créée: {{ getTasksArray()[0].created | date:'medium' }}
+                                                </div>
+                                                <div *ngIf="getTasksArray()[0].dueDate" class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                    Échéance: {{ getTasksArray()[0].dueDate | date:'medium' }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div *ngIf="getTasksArray().length > 1" class="space-y-2">
+                                            <div *ngFor="let task of getTasksArray()" class="flex items-center p-3 bg-white rounded-lg">
+                                                <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                                </svg>
+                                                <span class="font-medium text-gray-900">{{ task.name }}</span>
+                                                <span *ngIf="task.dueDate" class="ml-auto text-sm text-gray-500">
+                                (échéance: {{ task.dueDate | date:'shortDate' }})
+                            </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Transfer Options -->
+                                    <div class="space-y-4">
+                                        <h5 class="text-lg font-semibold text-gray-900">Sélectionnez le destinataire :</h5>
+
+                                        <!-- Manager Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedAssigneeType === 'manager' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectAssigneeType('manager')">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedAssigneeType === 'manager' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedAssigneeType === 'manager' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Manager</h6>
+                                                    <p class="text-gray-600 text-sm">Transférer au manager responsable</p>
+                                                </div>
+                                                <div *ngIf="selectedAssigneeType === 'manager'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Group Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedAssigneeType === 'group' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectAssigneeType('group')">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedAssigneeType === 'group' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedAssigneeType === 'group' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Groupe d'utilisateurs</h6>
+                                                    <p class="text-gray-600 text-sm">Transférer à un groupe de travail</p>
+                                                </div>
+                                                <div *ngIf="selectedAssigneeType === 'group'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- User Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedAssigneeType === 'user' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectAssigneeType('user')">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedAssigneeType === 'user' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedAssigneeType === 'user' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Utilisateur spécifique</h6>
+                                                    <p class="text-gray-600 text-sm">Choisir un utilisateur dans la liste</p>
+                                                </div>
+                                                <div *ngIf="selectedAssigneeType === 'user'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 1.1: Manager Transfer Type Selection -->
+                                <div *ngIf="currentStep === 1 && selectedAssigneeType === 'manager'" class="space-y-6">
+                                    <div class="space-y-4">
+                                        <h5 class="text-lg font-semibold text-gray-900">Choisissez le type de transfert au manager :</h5>
+
+                                        <!-- Its Manager Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedManagerTransferType === 'itsManager' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectManagerTransferType('itsManager'); openManagerConfirmationModal()">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedManagerTransferType === 'itsManager' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedManagerTransferType === 'itsManager' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10 2L3 9h3v8h8v-8h3l-7-7z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Transférer à son manager</h6>
+                                                    <p class="text-gray-600 text-sm">Le manager responsable de la tâche</p>
+                                                </div>
+                                                <div *ngIf="selectedManagerTransferType === 'itsManager'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Other Manager Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedManagerTransferType === 'otherManager' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectManagerTransferType('otherManager'); goToManagerSelectionStep()">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedManagerTransferType === 'otherManager' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedManagerTransferType === 'otherManager' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Transférer à un autre manager</h6>
+                                                    <p class="text-gray-600 text-sm">Sélectionner un autre manager</p>
+                                                </div>
+                                                <div *ngIf="selectedManagerTransferType === 'otherManager'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 1.1: Group Transfer Type Selection -->
+                                <div *ngIf="currentStep === 1 && selectedAssigneeType === 'group'" class="space-y-6">
+                                    <div class="space-y-4">
+                                        <h5 class="text-lg font-semibold text-gray-900">Choisissez le type de transfert de groupe :</h5>
+
+                                        <!-- Its Group Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedGroupTransferType === 'itsGroup' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectGroupTransferType('itsGroup'); openGroupConfirmationModal()">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedGroupTransferType === 'itsGroup' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedGroupTransferType === 'itsGroup' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Transférer à son groupe</h6>
+                                                    <p class="text-gray-600 text-sm">Le groupe associé à la tâche</p>
+                                                </div>
+                                                <div *ngIf="selectedGroupTransferType === 'itsGroup'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Other Group Option -->
+                                        <div class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedGroupTransferType === 'otherGroup' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectGroupTransferType('otherGroup'); goToGroupSelectionStep()">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+                                                     [class]="selectedGroupTransferType === 'otherGroup' ? 'bg-red-100' : 'bg-gray-100'">
+                                                    <svg class="w-6 h-6" [class]="selectedGroupTransferType === 'otherGroup' ? 'text-red-600' : 'text-gray-600'" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">Transférer à un autre groupe</h6>
+                                                    <p class="text-gray-600 text-sm">Sélectionner un autre groupe</p>
+                                                </div>
+                                                <div *ngIf="selectedGroupTransferType === 'otherGroup'" class="text-red-600">
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Manager Selection -->
+                                <div *ngIf="currentStep === 2 && selectedManagerTransferType === 'otherManager'" class="space-y-6">
+                                    <div class="flex items-center space-x-4">
+                                        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors" (click)="goBack()">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                            </svg>
+                                            <span>Retour</span>
+                                        </button>
+                                        <h5 class="text-lg font-semibold text-gray-900">Sélectionner un manager</h5>
+                                    </div>
+
+                                    <!-- Manager Search -->
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <input
+                                                type="text"
+                                                placeholder="Rechercher un manager..."
+                                                [(ngModel)]="managerSearchTerm"
+                                                (input)="filterManagers()"
+                                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" />
+                                    </div>
+
+                                    <!-- Loading Managers -->
+                                    <div *ngIf="loadingManagers" class="text-center py-12">
+                                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                                        <p class="text-gray-600">Chargement des managers...</p>
+                                    </div>
+
+                                    <!-- Managers List -->
+                                    <div *ngIf="!loadingManagers && filteredManagers.length > 0" class="space-y-3 max-h-80 overflow-y-auto">
+                                        <div *ngFor="let manager of filteredManagers"
+                                             class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedManagerId === manager.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectManagerAndSend(manager.id)">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                                                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">{{ manager.firstName }} {{ manager.lastName }}</h6>
+                                                    <p class="text-red-600 text-sm font-medium">{{ manager.role }}</p>
+                                                    <p class="text-gray-500 text-sm">{{ manager.email }}</p>
+                                                </div>
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex items-center text-sm" [class]="manager.isActive ? 'text-green-600' : 'text-gray-400'">
+                                                        <div class="w-2 h-2 rounded-full mr-2" [class]="manager.isActive ? 'bg-green-500' : 'bg-gray-400'"></div>
+                                                        {{ manager.isActive ? 'Actif' : 'Inactif' }}
+                                                    </div>
+                                                    <div *ngIf="selectedManagerId === manager.id" class="text-red-600">
+                                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Managers Found -->
+                                    <div *ngIf="!loadingManagers && filteredManagers.length === 0" class="text-center py-12">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="text-gray-600">Aucun manager trouvé.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Group Selection -->
+                                <div *ngIf="currentStep === 2 && selectedGroupTransferType === 'otherGroup'" class="space-y-6">
+                                    <div class="flex items-center space-x-4">
+                                        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors" (click)="goBack()">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                            </svg>
+                                            <span>Retour</span>
+                                        </button>
+                                        <h5 class="text-lg font-semibold text-gray-900">Sélectionner un groupe</h5>
+                                    </div>
+
+                                    <!-- Group Search -->
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <input
+                                                type="text"
+                                                placeholder="Rechercher un groupe..."
+                                                [(ngModel)]="groupSearchTerm"
+                                                (input)="filterGroups()"
+                                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" />
+                                    </div>
+
+                                    <!-- Loading Groups -->
+                                    <div *ngIf="loadingGroups" class="text-center py-12">
+                                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                                        <p class="text-gray-600">Chargement des groupes...</p>
+                                    </div>
+
+                                    <!-- Groups List -->
+                                    <div *ngIf="!loadingGroups && filteredGroups.length > 0" class="space-y-3 max-h-80 overflow-y-auto">
+                                        <div *ngFor="let group of filteredGroups"
+                                             class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedOtherGroupId === group.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectOtherGroup(group.id)">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">{{ group.name }}</h6>
+                                                    <p class="text-blue-600 text-sm font-medium">Groupe</p>
+                                                </div>
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex items-center text-sm text-green-600">
+                                                        <div class="w-2 h-2 rounded-full mr-2 bg-green-500"></div>
+                                                        Actif
+                                                    </div>
+                                                    <div *ngIf="selectedOtherGroupId === group.id" class="text-red-600">
+                                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Groups Found -->
+                                    <div *ngIf="!loadingGroups && filteredGroups.length === 0" class="text-center py-12">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="text-gray-600">Aucun groupe trouvé.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: User Selection -->
+                                <div *ngIf="currentStep === 2 && selectedAssigneeType === 'user'" class="space-y-6">
+                                    <div class="flex items-center space-x-4">
+                                        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors" (click)="goBack()">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                            </svg>
+                                            <span>Retour</span>
+                                        </button>
+                                        <h5 class="text-lg font-semibold text-gray-900">Sélectionner un utilisateur</h5>
+                                    </div>
+
+                                    <!-- User Search -->
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <input
+                                                type="text"
+                                                placeholder="Rechercher un utilisateur..."
+                                                [(ngModel)]="searchTerm"
+                                                (input)="filterUsers()"
+                                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" />
+                                    </div>
+
+                                    <!-- Users List -->
+                                    <div *ngIf="!loadingUsers && filteredUsers.length > 0" class="space-y-3 max-h-80 overflow-y-auto">
+                                        <div *ngFor="let user of filteredUsers"
+                                             class="border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                                             [class]="selectedUserId === user.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                             (click)="selectUser(user.id)">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                                                    <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h6 class="font-semibold text-gray-900">{{ user.firstName }} {{ user.lastName }}</h6>
+                                                    <p class="text-gray-600 text-sm">{{ user.role }}</p>
+                                                    <p class="text-gray-500 text-sm">{{ user.email }}</p>
+                                                </div>
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex items-center text-sm" [class]="user.isActive ? 'text-green-600' : 'text-gray-400'">
+                                                        <div class="w-2 h-2 rounded-full mr-2" [class]="user.isActive ? 'bg-green-500' : 'bg-gray-400'"></div>
+                                                        {{ user.isActive ? 'Actif' : 'Inactif' }}
+                                                    </div>
+                                                    <div *ngIf="selectedUserId === user.id" class="text-red-600">
+                                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Users Found -->
+                                    <div *ngIf="!loadingUsers && filteredUsers.length === 0" class="text-center py-12">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="text-gray-600">Aucun utilisateur trouvé.</p>
+                                    </div>
+
+                                    <!-- Loading Users -->
+                                    <div *ngIf="loadingUsers" class="text-center py-12">
+                                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                                        <p class="text-gray-600">Chargement des utilisateurs...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                                <div class="flex items-center justify-end space-x-3">
+                                    <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors" (click)="onClose()">
+                                        Annuler
+                                    </button>
+
+                                    <!-- User Transfer Button -->
+                                    <button *ngIf="selectedAssigneeType === 'user'"
+                                            class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                            [disabled]="!canProceed() || transferring"
+                                            (click)="onTransfer()">
+                                        <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <svg *ngIf="!transferring" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                        </svg>
+                                        <span>{{ transferring ? 'Transfert...' : 'Transférer' }}</span>
+                                    </button>
+
+                                    <!-- Group Transfer Button for Other Group -->
+                                    <button *ngIf="selectedAssigneeType === 'group' && currentStep === 2 && selectedGroupTransferType === 'otherGroup'"
+                                            class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                            [disabled]="!selectedOtherGroupId || transferring"
+                                            (click)="openGroupConfirmationModal()">
+                                        <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                        </svg>
+                                        <span>{{ transferring ? 'Transfert...' : 'Transférer au groupe' }}</span>
+                                    </button>
+
+                                    <!-- Manager Transfer Button for Other Manager -->
+                                    <button *ngIf="selectedAssigneeType === 'manager' && currentStep === 2 && selectedManagerTransferType === 'otherManager'"
+                                            class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                            [disabled]="!selectedManagerId || transferring"
+                                            (click)="openManagerConfirmationModal()">
+                                        <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                        </svg>
+                                        <span>{{ transferring ? 'Transfert...' : 'Transférer au manager' }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manager Confirmation Modal -->
+                        <div *ngIf="showManagerConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]" (click)="onConfirmationBackdrop($event)">
+                            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+                                <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-6 rounded-t-2xl">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </div>
+                                            <h3 class="text-xl font-bold">Confirmation de transfert</h3>
+                                        </div>
+                                        <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors" (click)="closeConfirmationModal()">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="p-6">
+                                    <div class="text-center">
+                                        <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                                            Êtes-vous sûr de vouloir transférer {{ getTasksArray().length > 1 ? 'ces tâches' : 'cette tâche' }} au manager ?
+                                        </h4>
+                                        <p *ngIf="selectedManagerTransferType === 'itsManager'" class="text-gray-600 mb-6">
+                                            Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} au manager responsable.
+                                        </p>
+                                        <p *ngIf="selectedManagerTransferType === 'otherManager' && selectedManager" class="text-gray-600 mb-6">
+                                            Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} à <strong>{{ selectedManager.firstName }} {{ selectedManager.lastName }}</strong>.
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center justify-end space-x-3">
+                                        <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors" (click)="closeConfirmationModal()">
+                                            Annuler
+                                        </button>
+                                        <button class="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                                [disabled]="transferring"
+                                                (click)="selectedManagerTransferType === 'itsManager' ? onManagerTransfer() : onConfirmManagerTransfer()">
+                                            <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span>{{ transferring ? 'Transfert en cours...' : 'Confirmer le transfert' }}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <!-- Group Confirmation Modal -->
+                    <div *ngIf="showGroupConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]" (click)="onConfirmationBackdrop($event)">
+                        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-xl font-bold">Confirmation de transfert</h3>
+                                    </div>
+                                    <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors" (click)="closeConfirmationModal()">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                                        Êtes-vous sûr de vouloir transférer {{ getTasksArray().length > 1 ? 'ces tâches' : 'cette tâche' }} au groupe ?
+                                    </h4>
+                                    <p *ngIf="selectedGroupTransferType === 'itsGroup'" class="text-gray-600 mb-6">
+                                        Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} au groupe associé.
+                                    </p>
+                                    <p *ngIf="selectedGroupTransferType === 'otherGroup' && selectedGroup" class="text-gray-600 mb-6">
+                                        Vous êtes sur le point de transférer {{ getTasksArray().length > 1 ? 'les tâches sélectionnées' : 'la tâche sélectionnée' }} au groupe <strong>{{ selectedGroup.name }}</strong>.
+                                    </p>
+                                </div>
+                                <div class="flex items-center justify-end space-x-3">
+                                    <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors" (click)="closeConfirmationModal()">
+                                        Annuler
+                                    </button>
+                                    <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                            [disabled]="transferring"
+                                            (click)="selectedGroupTransferType === 'itsGroup' ? onTransferGroup() : onConfirmGroupTransfer()">
+                                        <div *ngIf="transferring" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <svg *ngIf="!transferring" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span>{{ transferring ? 'Transfert en cours...' : 'Confirmer le transfert' }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

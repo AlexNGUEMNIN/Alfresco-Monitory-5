@@ -1,0 +1,14 @@
+<div class="toast-container" [class.show]="isVisible" [class.hide]="!isVisible">
+  <div class="toast" [ngClass]="'toast-' + type">
+    <div class="toast-icon">
+      <span class="material-icons">{{ getIcon() }}</span>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">{{ title }}</div>
+      <div class="toast-message">{{ message }}</div>
+    </div>
+    <button class="toast-close" (click)="close()">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+</div>

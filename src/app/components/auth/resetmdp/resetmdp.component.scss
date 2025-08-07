@@ -1,0 +1,191 @@
+html, body {
+    height: 100%; /* Prend toute la hauteur de l'écran */
+    margin: 0; /* Enlève les marges par défaut */
+    font-family: Arial, sans-serif; /* Définit une police de base */
+    background-color: #f4f4f4; /* Couleur de fond douce */
+}
+
+.login-container {
+    display: flex; /* Utilise Flexbox pour la mise en page */
+    flex-direction: row; /* Aligne les éléments horizontalement */
+    height: 100vh; /* Prend toute la hauteur de la fenêtre */
+    width: 100%; /* Prend toute la largeur de la fenêtre */
+}
+
+.image-div {
+    flex: 1; /* Prend 50% de l'espace par défaut */
+    display: flex; /* Aligne le contenu */
+    justify-content: center; /* Centre horizontalement */
+    align-items: center; /* Centre verticalement */
+}
+
+.image {
+    width: 100%; /* Prend toute la largeur disponible */
+    height: auto; /* Maintient le ratio d'aspect */
+    border-radius: 15px; /* Arrondit l'image */
+    object-fit: cover; /* Couvre l'espace tout en maintenant le ratio */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombre douce */
+}
+
+.form-div {
+    flex: 1; /* Prend l'espace restant */
+    padding: 20px; /* Espacement intérieur */
+    display: flex; /* Aligne le contenu */
+    flex-direction: column; /* Aligne les éléments verticalement */
+    justify-content: center; /* Centre le contenu verticalement */
+    background-color: white; /* Couleur de fond blanche */
+    box-shadow: 0 4px 3px rgba(0, 0, 0, 0.1); /* Ombre douce */
+    border-radius: 15px; /* Coins arrondis */
+    margin: 20px; /* Espacement autour du formulaire */
+    max-width: 400px; /* Largeur maximale pour le formulaire */
+    min-width: 300px; /* Largeur minimale pour le formulaire */
+}
+
+.welcome-section {
+    margin-bottom: 20px; /* Espacement en bas */
+    display: flex; /* Aligne le texte et les icônes en ligne */
+    align-items: center; /* Centre verticalement */
+}
+
+h1 {
+    margin: 0 0 10px; /* Espacement autour du titre */
+    color: #4CAF50; /* Couleur du texte */
+    text-align: center; /* Centre le texte */
+}
+
+.form-group {
+    margin-bottom: 20px; /* Espacement entre les groupes de formulaire */
+    width: 100%; /* Prend toute la largeur */
+}
+
+.form-input {
+    margin-top: 2%;
+    width: 92%; /* Prend toute la largeur */
+    padding: 10px; /* Espacement intérieur */
+    border: 1px solid #ccc; /* Bordure standard */
+    border-radius: 5px; /* Coins arrondis */
+    background-color: #f0f0f0; /* Couleur de fond */
+    transition: none; /* Retire toute transition */
+}
+.error-message{
+    color: red;
+}
+.form-input:focus {
+    border-color: #4CAF50; /* Couleur de bordure au focus */
+    outline: none; /* Enlève le contour par défaut au focus */
+}
+
+.forgot-password {
+    text-align: right; /* Aligne à droite */
+    margin-bottom: 15px; /* Espacement en bas */
+}
+
+.forgot {
+    color: #4CAF50; /* Couleur du lien */
+    text-decoration: none; /* Enlève le soulignement */
+}
+
+.login-button {
+    width: 100%; /* Prend toute la largeur */
+    padding: 10px; /* Espacement intérieur */
+    background-color: #4CAF50; /* Couleur de fond verte */
+    color: white; /* Couleur du texte */
+    border: none; /* Pas de bordure */
+    border-radius: 15px; /* Coins arrondis à 15px */
+    cursor: pointer; /* Curseur de main */
+    transition: background-color 0.3s; /* Transition douce */
+}
+
+.login-button:hover {
+    background-color: #45a049; /* Couleur au survol */
+}
+
+.divider-container {
+    display: flex; /* Utilise Flexbox pour aligner les éléments */
+    align-items: center; /* Aligne les éléments verticalement au centre */
+    margin: 15px 0; /* Espacement vertical */
+}
+
+.divider {
+    flex: 1; /* Permet au trait de prendre tout l'espace disponible */
+    border: none; /* Enlève la bordure par défaut */
+    border-top: 1px solid #ccc; /* Ajoute une bordure supérieure */
+}
+
+.connect-text {
+    margin: 0 10px; /* Espacement horizontal autour du texte */
+    font-weight: bold; /* Rend le texte plus visible */
+}
+
+.social-buttons {
+    display: flex; /* Aligne les boutons en ligne */
+    justify-content: space-between; /* Espace entre les boutons */
+    flex-wrap: wrap; /* Permet aux boutons de passer à la ligne si nécessaire */
+}
+
+.social-button {
+    flex: 1 1 45%; /* Prend un espace proportionnel */
+    background-color: #f0f0f0; /* Couleur de fond des boutons */
+    border: 1px solid #ccc; /* Bordure légère */
+    padding: 10px; /* Espacement intérieur */
+    border-radius: 15px; /* Coins arrondis à 15px */
+    cursor: pointer; /* Curseur de main */
+    display: flex; /* Aligne l'image et le texte en ligne */
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement */
+    margin: 5px; /* Espacement horizontal entre les boutons */
+    transition: background-color 0.3s; /* Transition douce */
+}
+
+.social-button:hover {
+    background-color: #e0e0e0; /* Couleur au survol */
+}
+
+.social-icon {
+    width: 20px; /* Largeur de l'icône */
+    height: auto; /* Maintient le ratio d'aspect */
+    margin-right: 5px; /* Espace entre l'icône et le texte */
+}
+
+.signup-link {
+    text-align: center; /* Centre le lien */
+    margin-top: 25px; /* Espacement en haut */
+    a{
+     
+        text-decoration: none;
+        color: inherit;
+    }
+}
+
+.footer {
+    text-align: center; /* Centre le texte du footer */
+    margin-top: 100px; /* Espacement en haut */
+    font-size: 12px; /* Taille de police réduite */
+    color: #666; /* Couleur du texte */
+}
+
+/* Styles pour les petits écrans */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column; /* Empile les éléments en colonne */
+    }
+
+    .image-div {
+        flex: 0 0 50vh; /* Limite la hauteur de l'image */
+        order: -1; /* Place l'image en haut */
+    }
+
+    .form-div {
+        padding: 20px; /* Réduit l'espacement intérieur */
+        margin: 10px; /* Ajuste la marge */
+    }
+
+    .social-button {
+        flex: 1 1 100%; /* Prend toute la largeur sur petits écrans */
+        margin: 5px 0; /* Ajuste l'espacement vertical */
+    }
+
+    .footer {
+        margin-top: 20px; /* Réduit l'espacement en haut du footer */
+    }
+}

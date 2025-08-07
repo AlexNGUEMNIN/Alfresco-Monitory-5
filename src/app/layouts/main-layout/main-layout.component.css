@@ -1,0 +1,42 @@
+/* Ensure the sidebar transform works properly */
+.sidebar-container {
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-container.collapsed {
+    transform: translateX(-100%);
+}
+
+/* Ensure main content adjusts properly */
+.main-content {
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.main-content.sidebar-open {
+    margin-left: 16rem; /* 256px / 16 = 16rem */
+}
+
+.main-content.sidebar-closed {
+    margin-left: 0;
+}
+
+/* Mobile specific styles */
+@media (max-width: 1023px) {
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .sidebar-container {
+        position: fixed;
+        z-index: 50;
+    }
+}
+
+/* Desktop specific styles */
+@media (min-width: 1024px) {
+    .sidebar-container {
+        position: fixed;
+        z-index: 50;
+    }
+}

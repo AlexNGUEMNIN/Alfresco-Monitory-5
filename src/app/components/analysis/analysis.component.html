@@ -1,0 +1,383 @@
+<br /><br /><br /><br />
+<div class="analysis-container responsive-analysis fade-in">
+  <!-- En-tête -->
+  <div class="processes-container fade-in">
+    <div class="processes-header slide-in-down">
+      <h2>Analyse des processus</h2>
+      <div class="actions">
+        <button class="btn btn-primary" (click)="runAnalysis()">
+          <span class="material-icons">analytics</span>
+          Lancer l'analyse
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation par onglets -->
+  <div class="tab-navigation">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'overview'"
+      (click)="setActiveTab('overview')"
+    >
+      Vue d'ensemble
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'causes'"
+      (click)="setActiveTab('causes')"
+    >
+      Causes principales
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'impact'"
+      (click)="setActiveTab('impact')"
+    >
+      Impact sur la performance
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'recommendations'"
+      (click)="setActiveTab('recommendations')"
+    >
+      Recommandations
+    </button>
+  </div>
+
+  <!-- Skeleton de chargement -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="skeleton-header skeleton-animate"></div>
+    <div class="skeleton-tabs skeleton-animate"></div>
+    <div class="skeleton-cards">
+      <div class="skeleton-card skeleton-animate"></div>
+      <div class="skeleton-card skeleton-animate"></div>
+      <div class="skeleton-card skeleton-animate"></div>
+      <div class="skeleton-card skeleton-animate"></div>
+    </div>
+    <div class="skeleton-chart skeleton-animate"></div>
+  </div>
+
+  <!-- Contenu -->
+  <div *ngIf="!loading" class="tab-content fade-in">
+    <!-- Vue d'ensemble -->
+    <div *ngIf="activeTab === 'overview'" class="overview-tab">
+      <div class="analysis-card slide-in-up">
+        <h3>Répartition des processus abandonnés</h3>
+        <div class="chart-placeholder">
+          <p>Le graphique de répartition des processus apparaîtra ici</p>
+          <p class="chart-description">
+            Visualisez la répartition des processus abandonnés par type
+          </p>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card slide-in-up" style="animation-delay: 0.1s">
+          <h4>Total abandons</h4>
+          <div class="metric-value">87</div>
+          <div class="metric-trend positive">
+            <span class="material-icons">trending_down</span>
+            <span>8% de baisse par rapport à la période précédente</span>
+          </div>
+        </div>
+        <div class="metric-card slide-in-up" style="animation-delay: 0.2s">
+          <h4>Durée moyenne</h4>
+          <div class="metric-value">23,5 heures</div>
+          <div class="metric-trend negative">
+            <span class="material-icons">trending_up</span>
+            <span>5% d'augmentation par rapport à la période précédente</span>
+          </div>
+        </div>
+        <div class="metric-card slide-in-up" style="animation-delay: 0.3s">
+          <h4>Taux d'abandon</h4>
+          <div class="metric-value">12,4%</div>
+          <div class="metric-trend positive">
+            <span class="material-icons">trending_down</span>
+            <span>2,1% de baisse par rapport à la période précédente</span>
+          </div>
+        </div>
+        <div class="metric-card slide-in-up" style="animation-delay: 0.4s">
+          <h4>Processus le plus affecté</h4>
+          <div class="metric-value">Demande de prêt</div>
+          <div class="metric-trend neutral">
+            <span>28 abandons</span>
+          </div>
+        </div>
+      </div>
+      <div class="analysis-card slide-in-up" style="animation-delay: 0.5s">
+        <h3>Tendance historique</h3>
+        <div class="chart-placeholder">
+          <p>Le graphique de tendance historique apparaîtra ici</p>
+          <p class="chart-description">
+            Suivi de l'évolution des abandons dans le temps
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Causes principales -->
+    <div *ngIf="activeTab === 'causes'" class="causes-tab">
+      <div class="analysis-card slide-in-up">
+        <h3>Causes fréquentes d'abandon</h3>
+        <div class="chart-placeholder">
+          <p>Le diagramme de Pareto des causes apparaîtra ici</p>
+          <p class="chart-description">Classement des causes par fréquence</p>
+        </div>
+      </div>
+      <div class="causes-list">
+        <div class="cause-item slide-in-up" style="animation-delay: 0.1s">
+          <div class="cause-header">
+            <h4>Dépassement de délai base de données</h4>
+            <span class="badge badge-error">Critique</span>
+          </div>
+          <p>
+            Dépassement du délai de connexion à la base de données lors de
+            traitements à fort volume. Survient le plus souvent entre 9h et 11h.
+          </p>
+          <div class="cause-stats">
+            <div class="stat">
+              <span class="label">Fréquence :</span>
+              <span class="value">42%</span>
+            </div>
+            <div class="stat">
+              <span class="label">Processus affectés :</span>
+              <span class="value">Demande de prêt, Ouverture de compte</span>
+            </div>
+          </div>
+        </div>
+        <div class="cause-item slide-in-up" style="animation-delay: 0.2s">
+          <div class="cause-header">
+            <h4>Erreur de validation</h4>
+            <span class="badge badge-warning">Moyen</span>
+          </div>
+          <p>
+            Erreurs de validation des variables lors de la soumission de
+            formulaire, causant le blocage du processus.
+          </p>
+          <div class="cause-stats">
+            <div class="stat">
+              <span class="label">Fréquence :</span>
+              <span class="value">27%</span>
+            </div>
+            <div class="stat">
+              <span class="label">Processus affectés :</span>
+              <span class="value"
+                >Onboarding client, Demande carte bancaire</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="cause-item slide-in-up" style="animation-delay: 0.3s">
+          <div class="cause-header">
+            <h4>Échec service externe</h4>
+            <span class="badge badge-warning">Moyen</span>
+          </div>
+          <p>
+            Échec d'intégration avec le service externe de vérification de
+            crédit, entraînant l'abandon du processus.
+          </p>
+          <div class="cause-stats">
+            <div class="stat">
+              <span class="label">Fréquence :</span>
+              <span class="value">18%</span>
+            </div>
+            <div class="stat">
+              <span class="label">Processus affectés :</span>
+              <span class="value">Demande de prêt, Demande carte bancaire</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Impact sur la performance -->
+    <div *ngIf="activeTab === 'impact'" class="impact-tab">
+      <div class="analysis-card slide-in-up">
+        <h3>Impact sur la base de données</h3>
+        <div class="chart-placeholder">
+          <p>Le graphique d'impact sur la base de données apparaîtra ici</p>
+          <p class="chart-description">
+            Impact des processus abandonnés sur la croissance de la BDD
+          </p>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card slide-in-up" style="animation-delay: 0.1s">
+          <h4>Croissance base de données</h4>
+          <div class="metric-value">245 Mo</div>
+          <div class="metric-trend negative">
+            <span class="material-icons">trending_up</span>
+            <span>Due aux processus abandonnés</span>
+          </div>
+        </div>
+        <div class="metric-card slide-in-up" style="animation-delay: 0.2s">
+          <h4>Performance des requêtes</h4>
+          <div class="metric-value">-18%</div>
+          <div class="metric-trend negative">
+            <span class="material-icons">trending_down</span>
+            <span>Ralentissement des requêtes associées</span>
+          </div>
+        </div>
+        <div class="metric-card slide-in-up" style="animation-delay: 0.3s">
+          <h4>Charge serveur</h4>
+          <div class="metric-value">+12%</div>
+          <div class="metric-trend negative">
+            <span class="material-icons">trending_up</span>
+            <span>Augmentation due aux processus orphelins</span>
+          </div>
+        </div>
+        <div class="metric-card slide-in-up" style="animation-delay: 0.4s">
+          <h4>Utilisation mémoire</h4>
+          <div class="metric-value">+8%</div>
+          <div class="metric-trend negative">
+            <span class="material-icons">trending_up</span>
+            <span>Plus élevée que la normale</span>
+          </div>
+        </div>
+      </div>
+      <div class="analysis-card slide-in-up" style="animation-delay: 0.5s">
+        <h3>Chronologie des performances système</h3>
+        <div class="chart-placeholder">
+          <p>Le graphique de chronologie des performances apparaîtra ici</p>
+          <p class="chart-description">Performance du système dans le temps</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommandations -->
+    <div *ngIf="activeTab === 'recommendations'" class="recommendations-tab">
+      <div class="recommendations-list">
+        <div
+          class="recommendation-item high-priority slide-in-up"
+          style="animation-delay: 0.1s"
+        >
+          <div class="recommendation-header">
+            <h4>Optimiser la gestion des délais BDD</h4>
+            <span class="badge badge-error">Priorité haute</span>
+          </div>
+          <p>
+            Implémenter le pooling de connexions et la logique de reprise sur
+            timeout pour traiter la cause principale d'abandon.
+          </p>
+          <div class="recommendation-details">
+            <div class="detail">
+              <span class="label">Impact :</span>
+              <span class="value">Peut réduire les abandons jusqu'à 42%</span>
+            </div>
+            <div class="detail">
+              <span class="label">Effort :</span>
+              <span class="value">Moyen (2-3 jours)</span>
+            </div>
+            <div class="detail">
+              <span class="label">Tables concernées :</span>
+              <span class="value">ACT_RU_VARIABLE, ACT_HI_VARINST</span>
+            </div>
+          </div>
+          <div class="recommendation-actions">
+            <button class="btn btn-primary">Implémenter</button>
+            <button class="btn-text">Voir détails</button>
+          </div>
+        </div>
+        <div
+          class="recommendation-item medium-priority slide-in-up"
+          style="animation-delay: 0.2s"
+        >
+          <div class="recommendation-header">
+            <h4>Renforcer la validation des formulaires</h4>
+            <span class="badge badge-warning">Priorité moyenne</span>
+          </div>
+          <p>
+            Améliorer la validation côté client et serveur pour éviter les
+            erreurs menant à l'abandon.
+          </p>
+          <div class="recommendation-details">
+            <div class="detail">
+              <span class="label">Impact :</span>
+              <span class="value">Peut réduire les abandons jusqu'à 27%</span>
+            </div>
+            <div class="detail">
+              <span class="label">Effort :</span>
+              <span class="value">Moyen (3-4 jours)</span>
+            </div>
+            <div class="detail">
+              <span class="label">Composants concernés :</span>
+              <span class="value"
+                >Gestionnaires de formulaires, Services de validation</span
+              >
+            </div>
+          </div>
+          <div class="recommendation-actions">
+            <button class="btn btn-primary">Implémenter</button>
+            <button class="btn-text">Voir détails</button>
+          </div>
+        </div>
+        <div
+          class="recommendation-item medium-priority slide-in-up"
+          style="animation-delay: 0.3s"
+        >
+          <div class="recommendation-header">
+            <h4>Mettre en place un fallback pour services externes</h4>
+            <span class="badge badge-warning">Priorité moyenne</span>
+          </div>
+          <p>
+            Ajouter des mécanismes de secours et de reprise pour éviter
+            l'abandon lors de pannes temporaires de services externes.
+          </p>
+          <div class="recommendation-details">
+            <div class="detail">
+              <span class="label">Impact :</span>
+              <span class="value">Peut réduire les abandons jusqu'à 18%</span>
+            </div>
+            <div class="detail">
+              <span class="label">Effort :</span>
+              <span class="value">Faible (1-2 jours)</span>
+            </div>
+            <div class="detail">
+              <span class="label">Services concernés :</span>
+              <span class="value"
+                >Service de scoring, Middleware d'intégration</span
+              >
+            </div>
+          </div>
+          <div class="recommendation-actions">
+            <button class="btn btn-primary">Implémenter</button>
+            <button class="btn-text">Voir détails</button>
+          </div>
+        </div>
+        <div
+          class="recommendation-item low-priority slide-in-up"
+          style="animation-delay: 0.4s"
+        >
+          <div class="recommendation-header">
+            <h4>Nettoyage périodique de la base</h4>
+            <span class="badge badge-info">Priorité basse</span>
+          </div>
+          <p>
+            Planifier des tâches automatiques de nettoyage pour purger les
+            processus terminés et abandonnés de plus de 30 jours.
+          </p>
+          <div class="recommendation-details">
+            <div class="detail">
+              <span class="label">Impact :</span>
+              <span class="value"
+                >Réduit la taille de la base d'environ 30%</span
+              >
+            </div>
+            <div class="detail">
+              <span class="label">Effort :</span>
+              <span class="value">Faible (1 jour)</span>
+            </div>
+            <div class="detail">
+              <span class="label">Tables concernées :</span>
+              <span class="value">Toutes les tables historiques</span>
+            </div>
+          </div>
+          <div class="recommendation-actions">
+            <button class="btn btn-primary">Implémenter</button>
+            <button class="btn-text">Voir détails</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

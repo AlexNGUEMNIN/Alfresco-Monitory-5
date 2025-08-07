@@ -1,0 +1,36 @@
+<br><br> <br><div class="dashboard-container" style="display: flex; gap: 2rem; flex-wrap: wrap">
+    <!-- CPU Chart -->
+    <div style="flex: 1; min-width: 300px">
+        <h3>CPU Usage</h3>
+        <canvas
+                baseChart
+                [data]="cpuChart"
+                [type]="'line'"
+                [options]="lineChartOptions">
+        </canvas>
+    </div>
+
+    <!-- Memory Chart -->
+    <div style="flex: 1; min-width: 300px">
+        <h3>Memory Usage</h3>
+        <canvas
+                baseChart
+                [data]="memChart"
+                [type]="'line'"
+                [options]="lineChartOptions">
+        </canvas>
+    </div>
+</div>
+
+<div style="max-width: 500px; margin: 2rem auto; text-align: center;">
+    <h2 class="mt-5">Database Table Sizes (MB)</h2>
+    <div style="height: 1500px;">
+        <canvas
+                baseChart
+                [data]="dbChart"
+                [type]="'bar'"
+                [options]="barChartOptions">
+        </canvas>
+    </div>
+</div>
+

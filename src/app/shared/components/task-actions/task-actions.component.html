@@ -1,0 +1,49 @@
+<div class="task-actions-row">
+  <button
+    class="action-btn stop-btn"
+    [ngClass]="{ suspended: isSuspended }"
+    (click)="confirmSuspendProcess()"
+    [disabled]="loading"
+    [title]="isSuspended ? 'Reprendre le processus' : 'Suspendre le processus'"
+  >
+    <span *ngIf="!loading" class="material-icons">
+      {{ isSuspended ? "play_arrow" : "pause" }}
+    </span>
+    <span *ngIf="loading" class="spinner"></span>
+    <span class="btn-text">
+      {{ isSuspended ? "Reprendre" : "Suspendre" }}
+    </span>
+  </button>
+
+  <button
+    class="action-btn transfer-btn"
+    (click)="onTransferTask()"
+    title="Transférer la tâche"
+  >
+    <span class="material-icons">swap_horiz</span>
+    <span class="btn-text">Transférer</span>
+  </button>
+
+  <button
+    class="action-btn terminate-btn"
+    (click)="confirmTerminateProcess()"
+    title="Arrêter le processus"
+  >
+    <span class="material-icons">stop_circle</span>
+    <span class="btn-text">Arrêter</span>
+  </button>
+</div>
+
+<!-- Affichage du popup même pour les opérations groupées -->
+<app-confirm-dialog
+  *ngIf="showConfirmDialog"
+  [title]="confirmDialogConfig.title"
+  [message]="confirmDialogConfig.message"
+  [confirmText]="confirmDialogConfig.confirmText"
+  [cancelText]="confirmDialogConfig.cancelText"
+  [icon]="confirmDialogConfig.icon"
+  [iconColor]="confirmDialogConfig.iconColor"
+  [theme]="confirmDialogConfig.theme"
+  (confirmed)="onConfirmDialogResult($event)"
+>
+</app-confirm-dialog>
