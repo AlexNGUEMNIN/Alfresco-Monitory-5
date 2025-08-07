@@ -88,13 +88,7 @@ export const routes: Routes = [
             (m) => m.AdminComponent
           ),
       },
-      {
-        path: "task",
-        loadComponent: () =>
-          import("./components/task/task.component").then(
-            (m) => m.TaskComponent
-          ),
-      },
+ 
       {
         path: "task-users",
         loadComponent: () =>
