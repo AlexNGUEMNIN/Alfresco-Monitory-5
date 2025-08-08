@@ -164,7 +164,6 @@ export class ProcessDynamicsComponent implements OnInit, OnDestroy {
 
   availableStatuses: StatusOption[] = [
     { value: "active", label: "En cours" },
-    { value: "suspended", label: "Suspendu" },
     { value: "completed", label: "Terminé" },
   ];
 

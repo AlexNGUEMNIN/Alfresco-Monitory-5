@@ -2,16 +2,16 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { WebSocketService, FailureData } from '../../core/services/websocket.service';
 
-interface Failure {
+// Update the Failure interface to match API response
+interface Failure extends FailureData {
   id: string;
   timestamp: Date;
   errorCode: string;
   errorMessage: string;
   errorType: 'system' | 'validation' | 'user' | 'timeout' | 'integration';
   criticality: 'critical' | 'high' | 'medium' | 'low';
-  processId: string;
-  processName: string;
   failureStep?: string;
   affectedUser?: string;
   environment?: string;
@@ -69,11 +69,17 @@ export class FailureComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
-  
+  private websocketPaused = false;
+
   // Data properties
   failures: Failure[] = [];
   filteredData: Failure[] = [];
   paginatedData: Failure[] = [];
+  
+  // WebSocket connection status
+  isConnected = false;
+  isWaitingForData = true; // New property to track if we're waiting for initial data
+  hasReceivedInitialData = false; // Track if we've received data at least once
   
   // UI state
   loading = true;
@@ -93,6 +99,15 @@ export class FailureComponent implements OnInit, OnDestroy {
   };
   
   selectedTimeRange = '24h';
+  
+  // Custom date range properties
+  customDateRange = {
+    startDate: '',
+    endDate: '',
+    enabled: false
+  };
+  
+  showCustomDatePicker = false;
   
   // Autocomplete data
   errorCodes: ErrorCode[] = [];
@@ -118,21 +133,18 @@ export class FailureComponent implements OnInit, OnDestroy {
   
   // Table configuration
   tableColumns = [
-    { key: 'timestamp', label: 'Timestamp' },
-    { key: 'criticality', label: 'Criticité & Type' },
-    { key: 'errorCode', label: 'Code & Message' },
-    { key: 'processName', label: 'Processus' },
-    { key: 'assignee', label: 'Assigné à' },
-    { key: 'resolutionStatus', label: 'Statut Résolution' }
+    { key: 'startTime', label: 'Heure de Début' },
+    { key: 'procInstId', label: 'ID Processus' },
+    { key: 'processName', label: 'Nom du Processus' },
+    { key: 'exceptionMsg', label: 'Message d\'Erreur' },
+    { key: 'email', label: 'Initiateur' },
+    { key: 'company', label: 'Société' },
+    { key: 'deploymentName', label: 'Déploiement' }
   ];
   
   // Criticality levels
   criticalityLevels: CriticalityLevel[] = [
-    { value: 'critical', label: 'Critique', color: 'bg-red-500' },
-    { value: 'high', label: 'Élevée', color: 'bg-orange-500' },
-    { value: 'medium', label: 'Moyenne', color: 'bg-yellow-500' },
-    { value: 'low', label: 'Faible', color: 'bg-green-500' }
-  ];
+   ];
   
   selectedCriticalityFilter = '';
   
@@ -142,23 +154,109 @@ export class FailureComponent implements OnInit, OnDestroy {
   resolvedFailures = 0;
   resolutionRate = 0;
   
-  constructor() {
+  errorState: { show: boolean; message: string } = { show: false, message: '' };
+
+  constructor(private webSocketService: WebSocketService) {
     this.setupSearchDebouncing();
   }
   
   ngOnInit(): void {
-    this.loadMockData();
+    this.loading = true;
+    this.isWaitingForData = true;
     this.loadErrorCodes();
     this.loadAssignees();
+    
+    // Ensure filters are reset to default (no filter active)
+    this.filters = {
+      criticality: '',
+      errorType: '',
+      resolutionStatus: '',
+      errorCode: '',
+      assignee: ''
+    };
+    this.globalSearchTerm = '';
+    this.selectedTimeRange = 'all';
+    this.selectedCriticalityFilter = '';
+    this.customDateRange = {
+      startDate: '',
+      endDate: '',
+      enabled: false
+    };
+    this.showCustomDatePicker = false;
+    
+    this.subscribeWebSocket();
+
+    // Show error message if no data after timeout
     setTimeout(() => {
-      this.loading = false;
-      this.applyFilters();
-    }, 1500);
+      if (this.loading && this.isWaitingForData) {
+        this.loading = false;
+        this.isWaitingForData = false;
+        if (!this.hasReceivedInitialData || (this.failures.length === 0 && this.filteredData.length === 0)) {
+          this.errorState = {
+            show: true,
+            message: "Aucune donnée reçue du serveur. Veuillez vérifier la connexion ou réessayer plus tard."
+          };
+        }
+        console.log('Loading timeout reached - no data received');
+      }
+    }, 15000); // 15 seconds timeout
+  }
+
+  private subscribeWebSocket(): void {
+    // Subscribe to WebSocket connection status
+    this.webSocketService.getConnectionStatus()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(status => {
+        this.isConnected = status;
+        console.log('Connection status:', status);
+        
+        // If disconnected and we haven't received initial data, keep loading
+        if (!status && !this.hasReceivedInitialData) {
+          this.loading = true;
+          this.isWaitingForData = true;
+        }
+      });
+
+    this.webSocketService.getFailures()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(failuresData => {
+        if (this.websocketPaused) return;
+        this.hasReceivedInitialData = true;
+        this.isWaitingForData = false;
+
+        if (failuresData && failuresData.length > 0) {
+          this.errorState = { show: false, message: '' };
+          this.processFailuresData(failuresData);
+          setTimeout(() => {
+            this.loading = false;
+          }, 300);
+        } else {
+          this.failures = [];
+          this.filteredData = [];
+          this.paginatedData = [];
+          this.updatePagination();
+          this.loading = false;
+          this.errorState = {
+            show: true,
+            message: "Aucune donnée d'échec disponible."
+          };
+        }
+      });
+    
+    // Set loading to false after timeout if no data received
+    setTimeout(() => {
+      if (this.loading && this.isWaitingForData) {
+        this.loading = false;
+        this.isWaitingForData = false;
+        console.log('Loading timeout reached - no data received');
+      }
+    }, 15000); // Increased timeout for WebSocket connection
   }
   
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.webSocketService.disconnect();
   }
   
   private setupSearchDebouncing(): void {
@@ -173,156 +271,107 @@ export class FailureComponent implements OnInit, OnDestroy {
       });
   }
   
-  private loadMockData(): void {
-    const errorTypes: Failure['errorType'][] = ['system', 'validation', 'user', 'timeout', 'integration'];
-    const criticalities: Failure['criticality'][] = ['critical', 'high', 'medium', 'low'];
-    const resolutionStatuses: Failure['resolutionStatus'][] = ['new', 'investigating', 'resolved', 'ignored', 'escalated'];
-    const processes = ['Demande de prêt', 'Ouverture de compte', 'Validation KYC', 'Transfert de fonds', 'Clôture de compte'];
-    const users = ['Jean Dupont', 'Marie Martin', 'Pierre Durand', 'Sophie Legrand'];
-    const teams = ['Support Technique', 'Équipe Crédit', 'Conformité', 'IT Operations'];
+  private processFailuresData(failuresData: FailureData[]): void {
+    console.log('Processing failures data:', failuresData);
     
-    this.failures = [];
-    
-    for (let i = 0; i < 120; i++) {
-      const errorType = errorTypes[Math.floor(Math.random() * errorTypes.length)];
-      const criticality = criticalities[Math.floor(Math.random() * criticalities.length)];
-      const resolutionStatus = resolutionStatuses[Math.floor(Math.random() * resolutionStatuses.length)];
-      const process = processes[Math.floor(Math.random() * processes.length)];
-      const user = users[Math.floor(Math.random() * users.length)];
-      const team = teams[Math.floor(Math.random() * teams.length)];
-      
+    this.failures = failuresData.map((data, index) => {
       const failure: Failure = {
-        id: `FAIL-${String(i + 1).padStart(4, '0')}`,
-        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        errorCode: this.generateErrorCode(errorType, i),
-        errorMessage: this.generateErrorMessage(errorType),
-        errorType,
-        criticality,
-        processId: `PROC-${String(i + 1).padStart(4, '0')}`,
-        processName: process,
-        failureStep: `Étape ${Math.floor(Math.random() * 5) + 1}`,
-        affectedUser: Math.random() > 0.3 ? user : undefined,
+        ...data,
+        id: data.procInstId,
+        timestamp: new Date(data.startTime),
+        errorCode: this.extractErrorCode(data.exceptionMsg, index),
+        errorMessage: data.exceptionMsg,
+        errorType: this.determineErrorType(data.exceptionMsg),
+        criticality: this.determineCriticality(data.exceptionMsg),
+        failureStep: 'Étape Inconnue',
+        affectedUser: data.email,
         environment: 'Production',
-        stackTrace: this.generateStackTrace(errorType),
-        assignee: resolutionStatus !== 'new' ? user : undefined,
-        assigneeTeam: resolutionStatus !== 'new' ? team : undefined,
-        resolutionStatus,
-        timeToResolve: resolutionStatus === 'resolved' ? `${Math.floor(Math.random() * 48)}h ${Math.floor(Math.random() * 60)}min` : undefined,
-        resolutionHistory: this.generateResolutionHistory(resolutionStatus)
+        stackTrace: this.generateStackTrace(data.exceptionMsg),
+        assignee: undefined,
+        assigneeTeam: undefined,
+        resolutionStatus: 'new',
+        timeToResolve: undefined,
+        resolutionHistory: []
       };
-      
-      this.failures.push(failure);
-    }
+      return failure;
+    });
     
-    this.calculateStatistics();
+    console.log('Processed failures:', this.failures);
+    
+    // this.calculateStatistics();
+    
+    // Reset filters and pagination
+    this.filteredData = [...this.failures];
+    this.currentPage = 1;
+    this.updatePagination();
+    
+    console.log('Filtered data:', this.filteredData);
+    console.log('Paginated data:', this.paginatedData);
+  }
+  
+  private extractErrorCode(exceptionMsg: string, index: number): string {
+    // Extract error code from exception message or generate one
+    if (exceptionMsg.includes('http request')) {
+      return `HTTP_${String(index + 1).padStart(3, '0')}`;
+    } else if (exceptionMsg.includes('timeout')) {
+      return `TIMEOUT_${String(index + 1).padStart(3, '0')}`;
+    } else if (exceptionMsg.includes('database')) {
+      return `DB_${String(index + 1).padStart(3, '0')}`;
+    } else {
+      return `SYS_${String(index + 1).padStart(3, '0')}`;
+    }
+  }
+  
+  private determineErrorType(exceptionMsg: string): Failure['errorType'] {
+    const msg = exceptionMsg.toLowerCase();
+    if (msg.includes('http') || msg.includes('connection')) {
+      return 'integration';
+    } else if (msg.includes('timeout')) {
+      return 'timeout';
+    } else if (msg.includes('validation') || msg.includes('invalid')) {
+      return 'validation';
+    } else if (msg.includes('permission') || msg.includes('unauthorized')) {
+      return 'user';
+    } else {
+      return 'system';
+    }
+  }
+  
+  private determineCriticality(exceptionMsg: string): Failure['criticality'] {
+    const msg = exceptionMsg.toLowerCase();
+    if (msg.includes('critical') || msg.includes('fatal')) {
+      return 'critical';
+    } else if (msg.includes('error') || msg.includes('exception')) {
+      return 'high';
+    } else if (msg.includes('warning')) {
+      return 'medium';
+    } else {
+      return 'low';
+    }
+  }
+  
+  private generateStackTrace(exceptionMsg: string): string {
+    return `Exception: ${exceptionMsg}
+    at com.afriland.aps.service.ProcessService.execute(ProcessService.java:245)
+    at com.afriland.aps.controller.ProcessController.handleRequest(ProcessController.java:89)
+    at org.springframework.web.method.support.InvocableHandlerMethod.invoke(InvocableHandlerMethod.java:197)
+    at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:85)`;
   }
   
   private loadErrorCodes(): void {
     this.errorCodes = [
-      { code: 'ERR_DB_001', description: 'Timeout de connexion base de données', frequency: 45 },
-      { code: 'ERR_VAL_002', description: 'Validation des données échouée', frequency: 32 },
-      { code: 'ERR_AUTH_003', description: 'Authentification expirée', frequency: 28 },
-      { code: 'ERR_NET_004', description: 'Erreur réseau', frequency: 23 },
-      { code: 'ERR_SYS_005', description: 'Erreur système critique', frequency: 19 },
-      { code: 'ERR_INT_006', description: 'Échec intégration service externe', frequency: 15 },
-      { code: 'ERR_PROC_007', description: 'Erreur de processus métier', frequency: 12 },
-      { code: 'ERR_FILE_008', description: 'Erreur de fichier', frequency: 8 }
-    ];
+      ];
   }
   
   private loadAssignees(): void {
     this.assignees = [
       { id: '1', name: 'Jean Dupont', team: 'Support Technique', role: 'Analyste Senior' },
-      { id: '2', name: 'Marie Martin', team: 'IT Operations', role: 'Manager' },
-      { id: '3', name: 'Pierre Durand', team: 'Équipe Crédit', role: 'Superviseur' },
-      { id: '4', name: 'Sophie Legrand', team: 'Conformité', role: 'Spécialiste' },
-      { id: '5', name: 'Antoine Robert', team: 'Support Technique', role: 'Technicien' },
-      { id: '6', name: 'Équipe Support', team: 'Support Technique', role: 'Équipe' },
-      { id: '7', name: 'Équipe DevOps', team: 'IT Operations', role: 'Équipe' }
-    ];
-  }
-  
-  private generateErrorCode(errorType: string, index: number): string {
-    const prefixes = {
-      system: 'ERR_SYS',
-      validation: 'ERR_VAL',
-      user: 'ERR_USR',
-      timeout: 'ERR_TMO',
-      integration: 'ERR_INT'
-    };
-    return `${prefixes[errorType as keyof typeof prefixes]}_${String(index + 1).padStart(3, '0')}`;
-  }
-  
-  private generateErrorMessage(errorType: string): string {
-    const messages = {
-      system: 'Erreur système critique - Service indisponible',
-      validation: 'Validation des données échouée - Format invalide',
-      user: 'Erreur utilisateur - Permissions insuffisantes',
-      timeout: 'Timeout dépassé - Connexion interrompue',
-      integration: 'Échec intégration service externe - API indisponible'
-    };
-    return messages[errorType as keyof typeof messages] || 'Erreur inconnue';
-  }
-  
-  private generateStackTrace(errorType: string): string {
-    return `java.lang.RuntimeException: ${this.generateErrorMessage(errorType)}
-    at com.afriland.aps.service.ProcessService.execute(ProcessService.java:245)
-    at com.afriland.aps.controller.ProcessController.handleRequest(ProcessController.java:89)
-    at org.springframework.web.method.support.InvocableHandlerMethod.invoke(InvocableHandlerMethod.java:197)
-    at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:85)
-    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:827)
-    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:738)
-    at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
-    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
-    at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:897)
-    at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:970)`;
-  }
-  
-  private generateResolutionHistory(status: string): any[] {
-    if (status === 'new') return [];
-    
-    const history = [
-      {
-        timestamp: new Date(Date.now() - 3600000),
-        action: 'Échec détecté',
-        description: 'Échec automatiquement détecté par le système de monitoring',
-        user: 'Système',
-        status: 'completed'
-      }
-    ];
-    
-    if (status !== 'new') {
-      history.push({
-        timestamp: new Date(Date.now() - 1800000),
-        action: 'Investigation démarrée',
-        description: 'Assignation à l\'équipe technique pour investigation',
-        user: 'Marie Martin',
-        status: 'completed'
-      });
-    }
-    
-    if (status === 'resolved') {
-      history.push({
-        timestamp: new Date(Date.now() - 900000),
-        action: 'Résolution appliquée',
-        description: 'Correction déployée et testée avec succès',
-        user: 'Jean Dupont',
-        status: 'completed'
-      });
-    }
-    
-    return history;
-  }
-  
-  private calculateStatistics(): void {
-    this.criticalFailures = this.failures.filter(f => f.criticality === 'critical').length;
-    this.activeFailures = this.failures.filter(f => ['new', 'investigating', 'escalated'].includes(f.resolutionStatus)).length;
-    this.resolvedFailures = this.failures.filter(f => f.resolutionStatus === 'resolved').length;
-    this.resolutionRate = this.failures.length > 0 ? Math.round((this.resolvedFailures / this.failures.length) * 100) : 0;
+     ];
   }
   
   // Search methods
   onGlobalSearch(): void {
+    this.pauseWebSocket();
     this.searchSubject.next(this.globalSearchTerm);
   }
   
@@ -335,7 +384,8 @@ export class FailureComponent implements OnInit, OnDestroy {
         failure.errorCode.toLowerCase().includes(searchTerm) ||
         failure.errorMessage.toLowerCase().includes(searchTerm) ||
         failure.processName.toLowerCase().includes(searchTerm) ||
-        failure.processId.toLowerCase().includes(searchTerm) ||
+        failure.procInstId.toLowerCase().includes(searchTerm) ||
+        (failure.email && failure.email.toLowerCase().includes(searchTerm)) ||
         (failure.assignee && failure.assignee.toLowerCase().includes(searchTerm))
       );
     }
@@ -348,27 +398,7 @@ export class FailureComponent implements OnInit, OnDestroy {
     this.performGlobalSearch('');
   }
   
-  // Error code search
-  onErrorCodeSearch(): void {
-    const term = this.filters.errorCode.toLowerCase();
-    if (term) {
-      this.filteredErrorCodes = this.errorCodes.filter(code =>
-        code.code.toLowerCase().includes(term) ||
-        code.description.toLowerCase().includes(term)
-      );
-      this.showErrorCodeSuggestions = true;
-    } else {
-      this.filteredErrorCodes = [];
-      this.showErrorCodeSuggestions = false;
-    }
-  }
-  
-  selectErrorCode(code: ErrorCode): void {
-    this.filters.errorCode = code.code;
-    this.showErrorCodeSuggestions = false;
-    this.applyFilters();
-  }
-  
+
   // Assignee search
   onAssigneeSearch(): void {
     const term = this.filters.assignee.toLowerCase();
@@ -385,11 +415,7 @@ export class FailureComponent implements OnInit, OnDestroy {
     }
   }
   
-  selectAssignee(assignee: Assignee): void {
-    this.filters.assignee = assignee.name;
-    this.showAssigneeSuggestions = false;
-    this.applyFilters();
-  }
+
   
   selectAssigneeForModal(assignee: Assignee): void {
     this.selectedAssignee = assignee;
@@ -399,7 +425,10 @@ export class FailureComponent implements OnInit, OnDestroy {
   
   // Filter methods
   applyFilters(): void {
+    this.pauseWebSocket();
     let filtered = [...this.failures];
+    
+    console.log('Applying filters to:', filtered.length, 'failures');
     
     // Apply global search first
     if (this.globalSearchTerm) {
@@ -407,7 +436,9 @@ export class FailureComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(failure =>
         failure.errorCode.toLowerCase().includes(searchTerm) ||
         failure.errorMessage.toLowerCase().includes(searchTerm) ||
-        failure.processName.toLowerCase().includes(searchTerm)
+        failure.processName.toLowerCase().includes(searchTerm) ||
+        failure.procInstId.toLowerCase().includes(searchTerm) ||
+        (failure.email && failure.email.toLowerCase().includes(searchTerm))
       );
     }
     
@@ -436,8 +467,17 @@ export class FailureComponent implements OnInit, OnDestroy {
       );
     }
     
-    // Apply time range filter
-    if (this.selectedTimeRange !== 'all') {
+    // Apply time range filter (enhanced)
+    if (this.customDateRange.enabled && this.customDateRange.startDate && this.customDateRange.endDate) {
+      // Custom date range filter
+      const startDate = new Date(this.customDateRange.startDate);
+      const endDate = new Date(this.customDateRange.endDate);
+      // Set end date to end of day
+      endDate.setHours(23, 59, 59, 999);
+      
+      filtered = filtered.filter(f => f.timestamp >= startDate && f.timestamp <= endDate);
+    } else if (this.selectedTimeRange !== 'all' && this.selectedTimeRange !== 'custom') {
+      // Predefined time range filter
       const now = new Date();
       let cutoffDate = new Date();
       
@@ -462,45 +502,96 @@ export class FailureComponent implements OnInit, OnDestroy {
     this.filteredData = filtered;
     this.currentPage = 1;
     this.updatePagination();
+    
+    console.log('After filtering:', this.filteredData.length, 'failures');
+    console.log('Paginated data length:', this.paginatedData.length);
   }
   
   applyTimeRange(): void {
+    this.pauseWebSocket();
+    if (this.selectedTimeRange === 'custom') {
+      this.showCustomDatePicker = true;
+    } else {
+      this.showCustomDatePicker = false;
+      this.customDateRange.enabled = false;
+    }
     this.applyFilters();
   }
   
-  filterByCriticality(criticality: string): void {
-    this.selectedCriticalityFilter = this.selectedCriticalityFilter === criticality ? '' : criticality;
-    this.filters.criticality = this.selectedCriticalityFilter;
-    this.applyFilters();
+  applyCustomDateRange(): void {
+    this.pauseWebSocket();
+    if (this.customDateRange.startDate && this.customDateRange.endDate) {
+      this.customDateRange.enabled = true;
+      this.selectedTimeRange = 'custom';
+      this.applyFilters();
+    }
   }
   
-  getCriticalityFilterClasses(criticality: string): string {
-    const isSelected = this.selectedCriticalityFilter === criticality;
-    const baseClasses = 'px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center space-x-1';
+  clearCustomDateRange(): void {
+    this.customDateRange = {
+      startDate: '',
+      endDate: '',
+      enabled: false
+    };
+    this.showCustomDatePicker = false;
+    this.selectedTimeRange = 'all';
+    // Do NOT call applyFilters here, just reset filters
+  }
+  
+  // Utility method to get today's date in YYYY-MM-DD format
+  getTodayDate(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
+  
+  // Utility method to get date 7 days ago
+  getWeekAgoDate(): string {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return weekAgo.toISOString().split('T')[0];
+  }
+  
+  // Quick date range setters
+  setQuickDateRange(type: 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth'): void {
+    this.pauseWebSocket();
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
     
-    if (isSelected) {
-      const selectedClasses = {
-        critical: 'bg-red-600 text-white',
-        high: 'bg-orange-600 text-white',
-        medium: 'bg-yellow-600 text-white',
-        low: 'bg-green-600 text-white'
-      };
-      return `${baseClasses} ${selectedClasses[criticality as keyof typeof selectedClasses]}`;
+    switch (type) {
+      case 'today':
+        this.customDateRange.startDate = this.getTodayDate();
+        this.customDateRange.endDate = this.getTodayDate();
+        break;
+      case 'yesterday':
+        this.customDateRange.startDate = yesterday.toISOString().split('T')[0];
+        this.customDateRange.endDate = yesterday.toISOString().split('T')[0];
+        break;
+      case 'thisWeek':
+        const thisWeekStart = new Date(today);
+        thisWeekStart.setDate(today.getDate() - today.getDay());
+        this.customDateRange.startDate = thisWeekStart.toISOString().split('T')[0];
+        this.customDateRange.endDate = this.getTodayDate();
+        break;
+      case 'lastWeek':
+        const lastWeekEnd = new Date(today);
+        lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
+        const lastWeekStart = new Date(lastWeekEnd);
+        lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+        this.customDateRange.startDate = lastWeekStart.toISOString().split('T')[0];
+        this.customDateRange.endDate = lastWeekEnd.toISOString().split('T')[0];
+        break;
+      case 'thisMonth':
+        const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        this.customDateRange.startDate = thisMonthStart.toISOString().split('T')[0];
+        this.customDateRange.endDate = this.getTodayDate();
+        break;
     }
     
-    const defaultClasses = {
-      critical: 'bg-red-100 text-red-800 hover:bg-red-200',
-      high: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
-      medium: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
-      low: 'bg-green-100 text-green-800 hover:bg-green-200'
-    };
-    return `${baseClasses} ${defaultClasses[criticality as keyof typeof defaultClasses]}`;
+    this.applyCustomDateRange();
   }
-  
-  getCriticalityCount(criticality: string): number {
-    return this.failures.filter(f => f.criticality === criticality).length;
-  }
-  
+
+
   // Filter management
   hasActiveFilters(): boolean {
     return !!(
@@ -510,7 +601,8 @@ export class FailureComponent implements OnInit, OnDestroy {
       this.filters.errorCode ||
       this.filters.assignee ||
       this.globalSearchTerm ||
-      this.selectedTimeRange !== 'all'
+      this.selectedTimeRange !== 'all' ||
+      this.customDateRange.enabled
     );
   }
   
@@ -557,7 +649,15 @@ export class FailureComponent implements OnInit, OnDestroy {
       });
     }
     
-    if (this.selectedTimeRange !== 'all') {
+    if (this.customDateRange.enabled && this.customDateRange.startDate && this.customDateRange.endDate) {
+      const startDate = new Date(this.customDateRange.startDate).toLocaleDateString('fr-FR');
+      const endDate = new Date(this.customDateRange.endDate).toLocaleDateString('fr-FR');
+      active.push({
+        key: 'customDateRange',
+        label: 'Période personnalisée',
+        value: `${startDate} - ${endDate}`
+      });
+    } else if (this.selectedTimeRange !== 'all' && this.selectedTimeRange !== 'custom') {
       const timeLabels = {
         '1h': 'Dernière heure',
         '24h': 'Dernières 24h',
@@ -583,6 +683,7 @@ export class FailureComponent implements OnInit, OnDestroy {
   }
   
   removeFilter(key: string): void {
+    this.pauseWebSocket();
     switch (key) {
       case 'criticality':
         this.filters.criticality = '';
@@ -603,6 +704,9 @@ export class FailureComponent implements OnInit, OnDestroy {
       case 'timeRange':
         this.selectedTimeRange = 'all';
         break;
+      case 'customDateRange':
+        this.clearCustomDateRange();
+        break;
       case 'globalSearch':
         this.globalSearchTerm = '';
         break;
@@ -611,6 +715,7 @@ export class FailureComponent implements OnInit, OnDestroy {
   }
   
   clearAllFilters(): void {
+    this.pauseWebSocket();
     this.filters = {
       criticality: '',
       errorType: '',
@@ -621,6 +726,7 @@ export class FailureComponent implements OnInit, OnDestroy {
     this.globalSearchTerm = '';
     this.selectedTimeRange = 'all';
     this.selectedCriticalityFilter = '';
+    this.clearCustomDateRange();
     this.applyFilters();
   }
   
@@ -628,13 +734,18 @@ export class FailureComponent implements OnInit, OnDestroy {
   updatePagination(): void {
     this.totalPages = Math.ceil(this.filteredData.length / this.pageSize);
     
-    if (this.currentPage > this.totalPages) {
-      this.currentPage = this.totalPages || 1;
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+      this.currentPage = this.totalPages;
+    } else if (this.currentPage < 1) {
+      this.currentPage = 1;
     }
     
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = Math.min(startIndex + this.pageSize, this.filteredData.length);
     this.paginatedData = this.filteredData.slice(startIndex, endIndex);
+    
+    console.log(`Pagination: page ${this.currentPage}/${this.totalPages}, showing ${startIndex}-${endIndex} of ${this.filteredData.length}`);
+    console.log('Paginated data:', this.paginatedData);
     
     this.calculateVisiblePageNumbers();
   }
@@ -712,24 +823,7 @@ export class FailureComponent implements OnInit, OnDestroy {
     console.log('Sorting by:', column);
     // Implementation for sorting
   }
-  
-  // Modal methods
-  viewFailureDetails(failure: Failure): void {
-    this.selectedFailure = failure;
-    this.showDetailsModal = true;
-  }
-  
-  closeDetailsModal(): void {
-    this.showDetailsModal = false;
-    this.selectedFailure = null;
-  }
-  
-  assignFailure(failure: Failure): void {
-    this.failureToAssign = failure;
-    this.showAssignmentModal = true;
-    this.resetAssignmentForm();
-  }
-  
+
   closeAssignmentModal(): void {
     this.showAssignmentModal = false;
     this.failureToAssign = null;
@@ -745,59 +839,14 @@ export class FailureComponent implements OnInit, OnDestroy {
     this.filteredAssignees = [];
   }
   
-  confirmAssignment(): void {
-    if (this.selectedAssignee && this.failureToAssign) {
-      // Update the failure with assignment
-      this.failureToAssign.assignee = this.selectedAssignee.name;
-      this.failureToAssign.assigneeTeam = this.selectedAssignee.team;
-      this.failureToAssign.resolutionStatus = 'investigating';
-      
-      console.log('Assigning failure:', {
-        failureId: this.failureToAssign.id,
-        assignee: this.selectedAssignee,
-        priority: this.assignmentPriority,
-        dueDate: this.assignmentDueDate,
-        comments: this.assignmentComments
-      });
-      
-      this.closeAssignmentModal();
-      this.applyFilters();
-    }
-  }
-  
+
   // Action methods
   retryProcess(failure: Failure): void {
     console.log('Retrying process for failure:', failure.id);
     // Implementation for retry
   }
   
-  escalateFailure(failure: Failure): void {
-    console.log('Escalating failure:', failure.id);
-    failure.resolutionStatus = 'escalated';
-    this.applyFilters();
-  }
-  
-  markAsResolved(failure: Failure): void {
-    failure.resolutionStatus = 'resolved';
-    this.closeDetailsModal();
-    this.applyFilters();
-    this.calculateStatistics();
-  }
-  
-  markAsIgnored(failure: Failure): void {
-    failure.resolutionStatus = 'ignored';
-    this.closeDetailsModal();
-    this.applyFilters();
-    this.calculateStatistics();
-  }
-  
-  escalateAll(): void {
-    const criticalFailures = this.failures.filter(f => f.criticality === 'critical' && f.resolutionStatus === 'new');
-    criticalFailures.forEach(f => f.resolutionStatus = 'escalated');
-    console.log(`Escalated ${criticalFailures.length} critical failures`);
-    this.applyFilters();
-  }
-  
+
   autoResolve(): void {
     console.log('Starting auto-resolution process...');
     // Implementation for auto-resolution
@@ -808,13 +857,23 @@ export class FailureComponent implements OnInit, OnDestroy {
     // Implementation for incident report generation
   }
   
-  refreshData(): void {
-    this.loading = true;
-    setTimeout(() => {
-      this.loadMockData();
-      this.loading = false;
-      this.applyFilters();
-    }, 1000);
+
+  
+  // New method to check if we should show loading state
+  shouldShowLoading(): boolean {
+    // Show loader until paginatedData is available and not empty
+    return this.loading || (this.isWaitingForData && !this.hasReceivedInitialData) || (this.paginatedData.length === 0 && this.failures.length === 0);
+  }
+  
+  // New method to get loading message
+  getLoadingMessage(): string {
+    if (!this.isConnected) {
+      return 'Connexion au serveur WebSocket...';
+    } else if (this.isWaitingForData) {
+      return 'En attente des données d\'échecs...';
+    } else {
+      return 'Chargement...';
+    }
   }
   
   // Utility methods
@@ -886,15 +945,7 @@ export class FailureComponent implements OnInit, OnDestroy {
     return labels[status] || status;
   }
   
-  getCriticalityClasses(criticality: string): string {
-    const classes: { [key: string]: string } = {
-      critical: 'bg-red-100 text-red-800 border border-red-200',
-      high: 'bg-orange-100 text-orange-800 border border-orange-200',
-      medium: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-      low: 'bg-green-100 text-green-800 border border-green-200'
-    };
-    return classes[criticality] || 'bg-gray-100 text-gray-800';
-  }
+
   
   getCriticalityColor(criticality: string): string {
     const colors: { [key: string]: string } = {
@@ -905,37 +956,20 @@ export class FailureComponent implements OnInit, OnDestroy {
     };
     return colors[criticality] || 'bg-gray-500';
   }
+
   
-  getErrorTypeClasses(errorType: string): string {
-    const classes: { [key: string]: string } = {
-      system: 'bg-blue-100 text-blue-800',
-      validation: 'bg-indigo-100 text-indigo-800',
-      user: 'bg-purple-100 text-purple-800',
-      timeout: 'bg-yellow-100 text-yellow-800',
-      integration: 'bg-green-100 text-green-800'
-    };
-    return classes[errorType] || 'bg-gray-100 text-gray-800';
+  // Add method to get connection status display
+  getConnectionStatusDisplay(): string {
+    return this.isConnected ? 'Connecté' : 'Déconnecté';
   }
   
-  getResolutionStatusClasses(status: string): string {
-    const classes: { [key: string]: string } = {
-      new: 'bg-red-100 text-red-800',
-      investigating: 'bg-blue-100 text-blue-800',
-      resolved: 'bg-green-100 text-green-800',
-      ignored: 'bg-gray-100 text-gray-800',
-      escalated: 'bg-orange-100 text-orange-800'
-    };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+  getConnectionStatusClass(): string {
+    return this.isConnected 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-red-100 text-red-800';
   }
-  
-  getResolutionStatusIcon(status: string): string {
-    const icons: { [key: string]: string } = {
-      new: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>',
-      investigating: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>',
-      resolved: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>',
-      ignored: '<path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"></path>',
-      escalated: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>'
-    };
-    return icons[status] || '';
+
+  private pauseWebSocket(): void {
+    this.websocketPaused = true;
   }
 }

@@ -120,6 +120,7 @@ export class TaskTransferModalComponent implements OnInit, OnChanges, OnDestroy 
             isActive: true,
             lastActivity: undefined,
             avatar: undefined,
+            groupName: user.groupName
           } as User;
         });
         this.filteredUsers = []; // Only show users after search
@@ -140,22 +141,23 @@ export class TaskTransferModalComponent implements OnInit, OnChanges, OnDestroy 
         // Deduplicate managers by managerUserId
         const seen = new Set();
         this.managers = groups
-            .filter(g => g.managerUserId && !seen.has(g.managerUserId) && !!g.email)
-            .map(g => {
-              seen.add(g.managerUserId);
-              const [firstName, ...lastNameArr] = (g.managerFullName || '').split(' ');
-              return {
-                id: g.managerUserId?.toString(),
-                username: g.email || '',
-                firstName: firstName || '',
-                lastName: lastNameArr.join(' ') || '',
-                email: g.email || '',
-                role: 'manager',
-                isActive: true,
-                lastActivity: undefined,
-                avatar: undefined,
-              } as User;
-            });
+          .filter(g => g.managerUserId && !seen.has(g.managerUserId) && !!g.email)
+          .map(g => {
+            seen.add(g.managerUserId);
+            const [firstName, ...lastNameArr] = (g.managerFullName || '').split(' ');
+            return {
+              id: g.managerUserId?.toString(),
+              username: g.email || '',
+              firstName: firstName || '',
+              lastName: lastNameArr.join(' ') || '',
+              email: g.email || '',
+              role: 'manager',
+              isActive: true,
+              lastActivity: undefined,
+              avatar: undefined,
+              groupName: g.groupName || '', // <-- Add groupName here
+            } as User & { groupName?: string };
+          });
         this.filteredManagers = [];
         this.loadingManagers = false;
       },
@@ -250,7 +252,8 @@ export class TaskTransferModalComponent implements OnInit, OnChanges, OnDestroy 
       this.filteredManagers = this.managers.filter(manager =>
           (manager.firstName?.toLowerCase().includes(term) || '') ||
           (manager.lastName?.toLowerCase().includes(term) || '') ||
-          (manager.email?.toLowerCase().includes(term) || '')
+          (manager.email?.toLowerCase().includes(term) || '')||
+          (manager.groupName?.toLowerCase().includes(term) || '')
       );
     } else {
       this.filteredManagers = [];
@@ -518,25 +521,30 @@ export class TaskTransferModalComponent implements OnInit, OnChanges, OnDestroy 
     const successfulTransfers: TaskAssignment[] = [];
 
     try {
-      const groupId = (tasks[0] as any).groupId;
-
-      // Remove the call to get group emails
-      // const userEmails = await this.http
-      //     .get<string[]>
-      //         `${environment.api2Url}/group/${encodeURIComponent(groupId)}/emails`,
-      //         {
-      //           headers: new HttpHeaders({
-      //             'Content-Type': 'application/json',
-      //             'Authorization': `Bearer ${this.authService.accessToken}`
-      //           })
-      //         }
-      //     )
-      //     .toPromise() ?? [];
-
+      let groupId: string | undefined;
+      if (this.selectedGroupTransferType === 'otherGroup') {
+        groupId = this.selectedOtherGroupId || undefined;
+      } else {
+        groupId = (tasks[0] as any).groupId;
+      }
 
       for (const task of tasks) {
         try {
-          await this.http.put(
+          if (this.selectedGroupTransferType === 'otherGroup' && groupId) {
+            // Use the new API for "un autre groupe"
+            await this.http.post(
+              `http://192.168.43.231:8080/activiti-app/api/enterprise/tasks/${task.id}/groups/${groupId}`,
+              null,
+              {
+                headers: new HttpHeaders({
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${this.authService.accessToken}`
+                })
+              }
+            ).toPromise();
+          } else {
+            // Default: unclaim for "son groupe"
+            await this.http.put(
               `${environment.BASE_URL}/activiti-app/api/enterprise/tasks/${task.id}/action/unclaim`,
               null,
               {
@@ -545,10 +553,8 @@ export class TaskTransferModalComponent implements OnInit, OnChanges, OnDestroy 
                   'Authorization': `Bearer ${this.authService.accessToken}`
                 })
               }
-          ).toPromise();
-
-
-          // If you want to notify group members, implement your own logic here
+            ).toPromise();
+          }
 
           successfulTransfers.push({
             taskId: task.id,

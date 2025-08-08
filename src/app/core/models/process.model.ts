@@ -48,6 +48,12 @@ export interface TrendPoint {
 }
 
 export interface ProcessData {
+  processInitiatorId: string;
+  taskId: string;
+  managerId: null;
+  managerEmail: null;
+  groupName: null;
+  groupId: null;
   processInstanceId: string;
   processDefinitionId: string;
   processStartTime: Date;
